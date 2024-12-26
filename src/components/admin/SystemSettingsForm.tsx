@@ -1,9 +1,10 @@
-import React from 'react'
 import { useForm } from 'react-hook-form'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useQuery, useMutation } from '@tanstack/react-query'
+import { z } from 'zod'
 import { supabase } from '@/integrations/supabase/client'
-import { useToast } from '@/hooks/use-toast'
 import { Button } from '@/components/ui/button'
+import { useToast } from '@/hooks/use-toast'
 import {
   Form,
   FormControl,
@@ -13,14 +14,30 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import type { SystemSettingsFormData } from '@/types/settings'
+
+const systemSettingsSchema = z.object({
+  commission_rate: z.number().min(0).max(100),
+  min_product_price: z.number().min(0),
+  max_product_price: z.number().min(0),
+  default_duration_hours: z.number().min(1),
+})
+
+type SystemSettingsFormData = z.infer<typeof systemSettingsSchema>
 
 export const SystemSettingsForm = () => {
   const { toast } = useToast()
-  const queryClient = useQueryClient()
 
-  const { data: settings, isLoading } = useQuery({
+  const form = useForm<SystemSettingsFormData>({
+    resolver: zodResolver(systemSettingsSchema),
+    defaultValues: {
+      commission_rate: 0,
+      min_product_price: 0,
+      max_product_price: 0,
+      default_duration_hours: 24,
+    },
+  })
+
+  const { data: settings } = useQuery({
     queryKey: ['systemSettings'],
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_system_settings')
@@ -29,131 +46,116 @@ export const SystemSettingsForm = () => {
     }
   })
 
-  const form = useForm<SystemSettingsFormData>({
-    defaultValues: {
-      commission_rate: 5,
-      min_product_price: 1000,
-      max_product_price: 1000000,
-      default_duration_hours: 168
-    }
-  })
-
-  const updateSettings = useMutation({
+  const { mutate: updateSettings } = useMutation({
     mutationFn: async (data: SystemSettingsFormData) => {
-      const { data: result, error } = await supabase.rpc('update_system_settings', {
+      const { error } = await supabase.rpc('update_system_settings', {
         p_commission_rate: data.commission_rate,
         p_min_product_price: data.min_product_price,
         p_max_product_price: data.max_product_price,
-        p_default_duration_hours: data.default_duration_hours
+        p_default_duration_hours: data.default_duration_hours,
       })
       if (error) throw error
-      return result
     },
     onSuccess: () => {
       toast({
         title: "Settings updated",
         description: "System settings have been updated successfully."
       })
-      queryClient.invalidateQueries({ queryKey: ['systemSettings'] })
     },
-    onError: (error) => {
+    onError: () => {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to update settings. Please try again."
+        description: "Failed to update system settings."
       })
-      console.error('Error updating settings:', error)
     }
   })
 
   const onSubmit = (data: SystemSettingsFormData) => {
-    updateSettings.mutate(data)
-  }
-
-  // Update form when settings are loaded
-  React.useEffect(() => {
-    if (settings) {
-      form.reset(settings)
-    }
-  }, [settings, form])
-
-  if (isLoading) {
-    return <div>Loading settings...</div>
+    updateSettings(data)
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>System Settings</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="commission_rate"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Commission Rate (%)</FormLabel>
-                  <FormControl>
-                    <Input type="number" step="0.1" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+    <div className="space-y-4">
+      <h2 className="text-2xl font-bold">System Settings</h2>
+      
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <FormField
+            control={form.control}
+            name="commission_rate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Commission Rate (%)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    {...field}
+                    onChange={e => field.onChange(parseFloat(e.target.value))}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-            <FormField
-              control={form.control}
-              name="min_product_price"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Minimum Product Price (XAF)</FormLabel>
-                  <FormControl>
-                    <Input type="number" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <FormField
+            control={form.control}
+            name="min_product_price"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Minimum Product Price</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    {...field}
+                    onChange={e => field.onChange(parseFloat(e.target.value))}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-            <FormField
-              control={form.control}
-              name="max_product_price"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Maximum Product Price (XAF)</FormLabel>
-                  <FormControl>
-                    <Input type="number" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <FormField
+            control={form.control}
+            name="max_product_price"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Maximum Product Price</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    {...field}
+                    onChange={e => field.onChange(parseFloat(e.target.value))}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-            <FormField
-              control={form.control}
-              name="default_duration_hours"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Default Duration (hours)</FormLabel>
-                  <FormControl>
-                    <Input type="number" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <FormField
+            control={form.control}
+            name="default_duration_hours"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Default Duration (hours)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    {...field}
+                    onChange={e => field.onChange(parseFloat(e.target.value))}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-            <Button 
-              type="submit" 
-              disabled={updateSettings.isPending}
-            >
-              {updateSettings.isPending ? 'Updating...' : 'Update Settings'}
-            </Button>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+          <Button type="submit">Save Settings</Button>
+        </form>
+      </Form>
+    </div>
   )
 }

@@ -128,6 +128,7 @@ export type Database = {
           id: string
           price: number
           seller_id: string
+          status: string | null
           title: string
         }
         Insert: {
@@ -137,6 +138,7 @@ export type Database = {
           id?: string
           price: number
           seller_id: string
+          status?: string | null
           title: string
         }
         Update: {
@@ -146,6 +148,7 @@ export type Database = {
           id?: string
           price?: number
           seller_id?: string
+          status?: string | null
           title?: string
         }
         Relationships: [

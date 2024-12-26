@@ -7,6 +7,7 @@ export interface Product {
   price: number
   currency: CurrencyType
   created_at: string
+  status: string
   seller_id: string
   seller?: {
     full_name: string | null
