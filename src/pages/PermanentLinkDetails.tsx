@@ -4,6 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Calendar, DollarSign, Eye, Info, Link } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
+import type { Database } from '@/integrations/supabase/types'
+
+type PermanentLink = Database['public']['Tables']['permanent_links']['Row']
+type Product = Database['public']['Tables']['products']['Row']
+type ProductImage = Database['public']['Tables']['product_images']['Row']
+type User = Database['public']['Tables']['users']['Row']
 
 const PermanentLinkDetails = () => {
   const { linkNumber } = useParams()
@@ -33,7 +39,14 @@ const PermanentLinkDetails = () => {
         .maybeSingle()
 
       if (error) throw error
-      return data
+      return data as PermanentLink & {
+        listing: {
+          product: Product & {
+            seller: User
+            images: ProductImage[]
+          }
+        }
+      }
     },
   })
 
