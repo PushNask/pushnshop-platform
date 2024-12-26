@@ -7,6 +7,7 @@ import { AuthProvider } from '@/contexts/AuthContext'
 import Index from './pages/Index'
 import ProductDetails from './pages/ProductDetails'
 import PermanentLinkDetails from './pages/PermanentLinkDetails'
+import SellerDashboard from './pages/SellerDashboard'
 
 const queryClient = new QueryClient()
 
@@ -19,6 +20,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/seller" element={<SellerDashboard />} />
             <Route path="/details/:id" element={<ProductDetails />} />
             <Route path="/p:linkNumber/details" element={<PermanentLinkDetails />} />
           </Routes>
