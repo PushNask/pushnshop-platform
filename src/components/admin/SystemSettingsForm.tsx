@@ -14,13 +14,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-
-interface SystemSettingsFormData {
-  commission_rate: number
-  min_product_price: number
-  max_product_price: number
-  default_duration_hours: number
-}
+import type { SystemSettingsFormData } from '@/types/settings'
 
 export const SystemSettingsForm = () => {
   const { toast } = useToast()
