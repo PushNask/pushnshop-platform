@@ -64,6 +64,7 @@ const ProductListing = ({ sellerView = false }) => {
     getNextPageParam: (lastPage, allPages) => {
       return lastPage.length === ITEMS_PER_PAGE ? allPages.length : undefined
     },
+    initialPageParam: 0
   })
 
   useEffect(() => {
