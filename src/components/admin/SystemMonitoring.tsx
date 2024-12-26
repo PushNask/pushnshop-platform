@@ -5,13 +5,21 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { Loader2 } from 'lucide-react'
 
+interface SystemMetrics {
+  cpu: number
+  memory: number
+  response_time: number
+  error_rate: number
+  active_users: number
+}
+
 export const SystemMonitoring = () => {
-  const { data: metrics, error, isLoading } = useQuery({
+  const { data: metrics, error, isLoading } = useQuery<SystemMetrics>({
     queryKey: ['systemMetrics'],
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_system_metrics')
       if (error) throw error
-      return data
+      return data as SystemMetrics
     },
     refetchInterval: 60000, // Refresh every minute
   })

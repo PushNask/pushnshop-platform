@@ -161,6 +161,36 @@ export type Database = {
           },
         ]
       }
+      system_metrics: {
+        Row: {
+          active_users: number
+          cpu_usage: number
+          created_at: string
+          error_rate: number
+          id: number
+          memory_usage: number
+          response_time: number
+        }
+        Insert: {
+          active_users?: number
+          cpu_usage?: number
+          created_at?: string
+          error_rate?: number
+          id?: number
+          memory_usage?: number
+          response_time?: number
+        }
+        Update: {
+          active_users?: number
+          cpu_usage?: number
+          created_at?: string
+          error_rate?: number
+          id?: number
+          memory_usage?: number
+          response_time?: number
+        }
+        Relationships: []
+      }
       system_settings: {
         Row: {
           commission_rate: number
