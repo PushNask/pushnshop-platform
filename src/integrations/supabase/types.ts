@@ -247,6 +247,12 @@ export type Database = {
         }
         Returns: undefined
       }
+      is_super_admin_email: {
+        Args: {
+          email: string
+        }
+        Returns: boolean
+      }
       update_system_settings: {
         Args: {
           p_commission_rate?: number

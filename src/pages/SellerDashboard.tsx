@@ -10,6 +10,8 @@ import { ProtectedRoute } from '@/contexts/AuthContext'
 const SellerDashboard = () => {
   const { toast } = useToast()
 
+  console.log('Rendering SellerDashboard')
+
   return (
     <ProtectedRoute allowedRoles={['seller', 'admin']}>
       <div className="container mx-auto p-4 space-y-4">
