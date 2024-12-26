@@ -29,22 +29,28 @@ const AdminDashboard = () => {
   const { data: metrics, error, isLoading } = useQuery({
     queryKey: ['adminMetrics'],
     queryFn: async () => {
+      console.log('Fetching admin metrics...')
       const { data, error } = await supabase.rpc('get_admin_dashboard_metrics', {
         time_range: '24h'
       })
-      if (error) throw error
-      return data as unknown as AdminMetrics
+      if (error) {
+        console.error('Error fetching metrics:', error)
+        throw error
+      }
+      console.log('Metrics data received:', data)
+      return data as AdminMetrics
     },
-    retry: 2,
-    retryDelay: 1000
+    retry: 1,
+    staleTime: 30000
   })
 
   useEffect(() => {
     if (error) {
+      console.error('Dashboard error:', error)
       toast({
         variant: "destructive",
-        title: "Error fetching metrics",
-        description: "Please try again later or contact support."
+        title: "Error loading dashboard",
+        description: "Please try refreshing the page or contact support."
       })
     }
   }, [error, toast])
@@ -56,14 +62,6 @@ const AdminDashboard = () => {
           Failed to load the dashboard. Please try again later.
         </AlertDescription>
       </Alert>
-    )
-  }
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-[200px]">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
     )
   }
 
@@ -79,7 +77,11 @@ const AdminDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {metrics?.overview?.pendingProducts || 0}
+              {isLoading ? (
+                <Loader2 className="h-6 w-6 animate-spin" />
+              ) : (
+                metrics?.overview?.pendingProducts || 0
+              )}
             </div>
           </CardContent>
         </Card>
@@ -89,7 +91,11 @@ const AdminDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {metrics?.overview?.pendingPayments || 0}
+              {isLoading ? (
+                <Loader2 className="h-6 w-6 animate-spin" />
+              ) : (
+                metrics?.overview?.pendingPayments || 0
+              )}
             </div>
           </CardContent>
         </Card>
@@ -99,10 +105,14 @@ const AdminDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {new Intl.NumberFormat('en-US', {
-                style: 'currency',
-                currency: 'XAF'
-              }).format(metrics?.overview?.totalRevenue || 0)}
+              {isLoading ? (
+                <Loader2 className="h-6 w-6 animate-spin" />
+              ) : (
+                new Intl.NumberFormat('en-US', {
+                  style: 'currency',
+                  currency: 'XAF'
+                }).format(metrics?.overview?.totalRevenue || 0)
+              )}
             </div>
           </CardContent>
         </Card>
