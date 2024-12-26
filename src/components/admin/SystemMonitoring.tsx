@@ -12,12 +12,29 @@ export const SystemMonitoring = () => {
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_system_metrics')
       if (error) throw error
-      // Ensure the response matches our SystemMetrics type
-      const typedData = data as SystemMetrics
-      if (!typedData || typeof typedData.cpu !== 'number') {
+      
+      // First cast to unknown
+      const unknownData = data as unknown
+      
+      // Type guard function to validate the shape of the data
+      const isSystemMetrics = (data: unknown): data is SystemMetrics => {
+        if (!data || typeof data !== 'object') return false
+        const d = data as Record<string, unknown>
+        return (
+          typeof d.cpu === 'number' &&
+          typeof d.memory === 'number' &&
+          typeof d.response_time === 'number' &&
+          typeof d.error_rate === 'number' &&
+          typeof d.active_users === 'number'
+        )
+      }
+
+      // Validate and cast the data
+      if (!isSystemMetrics(unknownData)) {
         throw new Error('Invalid system metrics data format')
       }
-      return typedData
+
+      return unknownData
     },
     refetchInterval: 60000, // Refresh every minute
   })
