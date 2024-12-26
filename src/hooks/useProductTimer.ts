@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
+import { useToast } from '@/hooks/use-toast'
 
 interface TimeRemaining {
   hours: number
@@ -17,6 +18,7 @@ export const useProductTimer = (productId: string) => {
     isExpired: false
   })
 
+  const { toast } = useToast()
   const queryClient = useQueryClient()
 
   // Fetch product expiry time
@@ -25,7 +27,7 @@ export const useProductTimer = (productId: string) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('products')
-        .select('created_at, expires_at')
+        .select('created_at, expires_at, status')
         .eq('id', productId)
         .single()
 
@@ -54,6 +56,34 @@ export const useProductTimer = (productId: string) => {
           seconds: 0,
           isExpired: true
         })
+
+        // Update product status to expired
+        const updateExpiredStatus = async () => {
+          try {
+            const { error } = await supabase
+              .from('products')
+              .update({ status: 'expired' })
+              .eq('id', productId)
+              .eq('status', 'active') // Only update if still active
+
+            if (error) throw error
+
+            // Invalidate queries to refresh product status
+            queryClient.invalidateQueries({ queryKey: ['products'] })
+            queryClient.invalidateQueries({ queryKey: ['product-expiry', productId] })
+
+            // Notify user about expiration
+            toast({
+              title: 'Product Expired',
+              description: 'This product listing has expired and is no longer visible to buyers.',
+              variant: 'default'
+            })
+          } catch (error) {
+            console.error('Failed to update expired product:', error)
+          }
+        }
+
+        updateExpiredStatus()
         return
       }
 
@@ -67,6 +97,15 @@ export const useProductTimer = (productId: string) => {
         seconds,
         isExpired: false
       })
+
+      // Show warning notification when less than 1 hour remains
+      if (hours === 0 && minutes === 59 && seconds === 59) {
+        toast({
+          title: 'Product Expiring Soon',
+          description: 'This product will expire in less than an hour.',
+          variant: 'warning'
+        })
+      }
     }
 
     // Initial calculation
@@ -86,7 +125,7 @@ export const useProductTimer = (productId: string) => {
       clearInterval(timer)
       clearTimeout(expiryTimer)
     }
-  }, [expiryTime, productId, queryClient])
+  }, [expiryTime, productId, queryClient, toast])
 
   return timeRemaining
 }
