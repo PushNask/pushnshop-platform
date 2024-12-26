@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { supabase } from '@/integrations/supabase/client'
-import { WhatsappIcon } from 'lucide-react'
+import { MessageSquare } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 
 interface ProductCardProps {
@@ -75,7 +75,7 @@ const ProductCard = ({
           onClick={handleWhatsAppClick}
           disabled={!whatsappNumber}
         >
-          <WhatsappIcon className="w-4 h-4 mr-2" />
+          <MessageSquare className="w-4 h-4 mr-2" />
           Contact Seller
         </Button>
       </CardFooter>
