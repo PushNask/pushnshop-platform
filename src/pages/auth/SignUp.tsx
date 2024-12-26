@@ -32,7 +32,7 @@ const SignUp = () => {
     setIsLoading(true)
 
     try {
-      const { error: signUpError } = await supabase.auth.signUp({
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -46,13 +46,15 @@ const SignUp = () => {
 
       if (signUpError) throw signUpError
 
-      toast({
-        title: 'Account created!',
-        description: 'Please check your email to verify your account.',
-      })
-      
-      navigate('/login')
+      if (signUpData?.user) {
+        toast({
+          title: 'Account created!',
+          description: 'Please check your email to verify your account.',
+        })
+        navigate('/login')
+      }
     } catch (err) {
+      console.error('Signup error:', err)
       setError(err instanceof Error ? err.message : 'Failed to sign up')
       toast({
         variant: 'destructive',
