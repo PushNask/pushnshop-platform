@@ -38,7 +38,8 @@ const AdminDashboard = () => {
         throw error
       }
       console.log('Metrics data received:', data)
-      return data as AdminMetrics
+      // Cast the response to unknown first, then to AdminMetrics
+      return data as unknown as AdminMetrics
     },
     retry: 1,
     staleTime: 30000
