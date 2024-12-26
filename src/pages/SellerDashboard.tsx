@@ -7,6 +7,7 @@ import SellerMetrics from '@/components/seller/SellerMetrics'
 import { ProtectedRoute } from '@/contexts/AuthContext'
 import { Loader2 } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import ErrorBoundary from '@/components/shared/ErrorBoundary'
 
 const SellerDashboard = () => {
   const { toast } = useToast()
@@ -54,7 +55,9 @@ const SellerDashboard = () => {
           </div>
         ) : (
           <>
-            <SellerMetrics />
+            <ErrorBoundary>
+              <SellerMetrics />
+            </ErrorBoundary>
 
             <Tabs defaultValue="products" className="w-full">
               <TabsList>
@@ -63,11 +66,15 @@ const SellerDashboard = () => {
               </TabsList>
               
               <TabsContent value="products">
-                <ProductList />
+                <ErrorBoundary>
+                  <ProductList />
+                </ErrorBoundary>
               </TabsContent>
               
               <TabsContent value="create">
-                <CreateProduct />
+                <ErrorBoundary>
+                  <CreateProduct />
+                </ErrorBoundary>
               </TabsContent>
             </Tabs>
           </>
