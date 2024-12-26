@@ -1,4 +1,4 @@
-import type { CurrencyType } from './database'
+import type { CurrencyType } from './database/enums'
 
 export interface Product {
   id: string
@@ -7,15 +7,8 @@ export interface Product {
   price: number
   currency: CurrencyType
   created_at: string
-  status: string
-  seller: {
+  seller_id: string
+  seller?: {
     full_name: string | null
   }
-}
-
-export interface ProductImage {
-  id: string
-  url: string
-  alt: string | null
-  product_id: string
 }

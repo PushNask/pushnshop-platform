@@ -25,7 +25,7 @@ export const SystemSettingsForm = () => {
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_system_settings')
       if (error) throw error
-      return data as SystemSettingsFormData
+      return data as unknown as SystemSettingsFormData
     }
   })
 
