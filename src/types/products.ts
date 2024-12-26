@@ -9,6 +9,7 @@ export interface Product {
   created_at: string
   status: string
   seller_id: string
+  expires_at: string | null
   seller?: {
     full_name: string | null
   }
