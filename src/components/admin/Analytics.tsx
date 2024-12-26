@@ -13,6 +13,7 @@ import {
   Pie,
   Cell
 } from 'recharts'
+import type { AdminMetrics } from '@/types/admin'
 
 export const Analytics = () => {
   const { data: metrics } = useQuery({
@@ -22,7 +23,7 @@ export const Analytics = () => {
         time_range: '30d'
       })
       if (error) throw error
-      return data
+      return data as AdminMetrics
     }
   })
 

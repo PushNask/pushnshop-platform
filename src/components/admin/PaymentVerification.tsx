@@ -11,6 +11,20 @@ import {
   TableRow,
 } from '@/components/ui/table'
 
+interface Payment {
+  id: string;
+  amount: number;
+  currency: string;
+  status: string;
+  created_at: string;
+  buyer: {
+    full_name: string;
+  };
+  product: {
+    title: string;
+  };
+}
+
 export const PaymentVerification = () => {
   const { toast } = useToast()
 
@@ -28,7 +42,7 @@ export const PaymentVerification = () => {
         .order('created_at', { ascending: false })
       
       if (error) throw error
-      return data
+      return data as Payment[]
     }
   })
 

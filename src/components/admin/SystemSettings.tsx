@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/integrations/supabase/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import type { SystemMetrics } from '@/types/admin'
 
 export const SystemSettings = () => {
   const { data: metrics } = useQuery({
@@ -8,7 +9,7 @@ export const SystemSettings = () => {
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_system_metrics')
       if (error) throw error
-      return data
+      return data as SystemMetrics
     },
     refetchInterval: 30000 // Refresh every 30 seconds
   })
