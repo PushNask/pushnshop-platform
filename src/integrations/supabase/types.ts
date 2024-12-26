@@ -125,6 +125,7 @@ export type Database = {
           created_at: string | null
           currency: Database["public"]["Enums"]["currency_type"] | null
           description: string
+          expires_at: string | null
           id: string
           price: number
           seller_id: string
@@ -135,6 +136,7 @@ export type Database = {
           created_at?: string | null
           currency?: Database["public"]["Enums"]["currency_type"] | null
           description: string
+          expires_at?: string | null
           id?: string
           price: number
           seller_id: string
@@ -145,6 +147,7 @@ export type Database = {
           created_at?: string | null
           currency?: Database["public"]["Enums"]["currency_type"] | null
           description?: string
+          expires_at?: string | null
           id?: string
           price?: number
           seller_id?: string
