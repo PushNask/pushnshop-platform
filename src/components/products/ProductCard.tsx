@@ -1,10 +1,11 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { supabase } from '@/integrations/supabase/client'
-import { MessageSquare, Pencil, Trash2 } from 'lucide-react'
+import { MessageSquare, Pencil, Trash2, Clock } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
+import { useProductTimer } from '@/hooks/useProductTimer'
 
 interface ProductCardProps {
   id: string
@@ -31,6 +32,7 @@ const ProductCard = ({
 }: ProductCardProps) => {
   const { toast } = useToast()
   const queryClient = useQueryClient()
+  const { hours, minutes, seconds, isExpired } = useProductTimer(id)
 
   const handleWhatsAppClick = async () => {
     try {
@@ -83,6 +85,10 @@ const ProductCard = ({
     }
   }
 
+  if (isExpired) {
+    return null // Don't render expired products
+  }
+
   return (
     <Card className="w-full h-full flex flex-col hover:shadow-lg transition-shadow">
       <Link to={`/details/${id}`} className="flex-grow">
@@ -92,6 +98,11 @@ const ProductCard = ({
             alt={title}
             className="object-cover w-full h-full"
           />
+          {/* Timer badge */}
+          <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded-full flex items-center text-sm">
+            <Clock className="w-4 h-4 mr-1" />
+            {hours}h {minutes}m {seconds}s
+          </div>
         </div>
         <CardContent className="flex-grow p-4">
           <h3 className="font-semibold text-lg mb-2 line-clamp-2">{title}</h3>
