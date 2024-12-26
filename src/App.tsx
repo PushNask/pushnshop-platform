@@ -17,8 +17,15 @@ import SignUp from './pages/auth/SignUp'
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 1,
+      retry: 2,
+      retryDelay: 1000,
+      staleTime: 30000,
       refetchOnWindowFocus: false,
+      refetchOnMount: true,
+      refetchOnReconnect: true,
+      onError: (error) => {
+        console.error('Query error:', error)
+      }
     },
   },
 })

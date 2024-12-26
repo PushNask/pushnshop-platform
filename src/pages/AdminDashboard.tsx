@@ -13,6 +13,7 @@ import { UserManagement } from '@/components/admin/UserManagement'
 import { Analytics } from '@/components/admin/Analytics'
 import { SystemSettings } from '@/components/admin/SystemSettings'
 import { Navigate } from 'react-router-dom'
+import { Loader2 } from 'lucide-react'
 import type { AdminMetrics } from '@/types/admin'
 
 const AdminDashboard = () => {
@@ -24,7 +25,7 @@ const AdminDashboard = () => {
     return <Navigate to="/" replace />
   }
 
-  const { data: metrics, error } = useQuery({
+  const { data: metrics, error, isLoading } = useQuery({
     queryKey: ['adminMetrics'],
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_admin_dashboard_metrics', {
@@ -33,7 +34,8 @@ const AdminDashboard = () => {
       if (error) throw error
       return data as unknown as AdminMetrics
     },
-    refetchInterval: 30000 // Refresh every 30 seconds
+    retry: 2,
+    retryDelay: 1000
   })
 
   useEffect(() => {
@@ -45,6 +47,24 @@ const AdminDashboard = () => {
       })
     }
   }, [error, toast])
+
+  if (error) {
+    return (
+      <Alert variant="destructive" className="my-4">
+        <AlertDescription>
+          Failed to load the dashboard. Please try again later.
+        </AlertDescription>
+      </Alert>
+    )
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[200px]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    )
+  }
 
   return (
     <div className="container mx-auto p-6 space-y-6">
