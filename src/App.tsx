@@ -23,8 +23,10 @@ const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
       refetchOnMount: true,
       refetchOnReconnect: true,
-      onError: (error) => {
-        console.error('Query error:', error)
+      meta: {
+        errorHandler: (error: Error) => {
+          console.error('Query error:', error)
+        }
       }
     },
   },

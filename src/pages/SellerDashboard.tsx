@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
 import { useToast } from '@/hooks/use-toast'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import ProductList from '@/components/seller/ProductList'
 import CreateProduct from '@/components/seller/CreateProduct'
@@ -23,12 +22,14 @@ const SellerDashboard = () => {
       return response.json()
     },
     retry: 1,
-    onError: () => {
-      toast({
-        variant: "destructive",
-        title: "Error loading dashboard",
-        description: "Please try refreshing the page."
-      })
+    meta: {
+      onError: () => {
+        toast({
+          variant: "destructive",
+          title: "Error loading dashboard",
+          description: "Please try refreshing the page."
+        })
+      }
     }
   })
 
