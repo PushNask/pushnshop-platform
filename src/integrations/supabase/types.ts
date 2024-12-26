@@ -9,6 +9,53 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      payments: {
+        Row: {
+          amount: number
+          buyer_id: string
+          created_at: string | null
+          currency: Database["public"]["Enums"]["currency_type"] | null
+          id: string
+          product_id: string
+          status: Database["public"]["Enums"]["payment_status"] | null
+          updated_at: string | null
+          verification_notes: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          amount: number
+          buyer_id: string
+          created_at?: string | null
+          currency?: Database["public"]["Enums"]["currency_type"] | null
+          id?: string
+          product_id: string
+          status?: Database["public"]["Enums"]["payment_status"] | null
+          updated_at?: string | null
+          verification_notes?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          amount?: number
+          buyer_id?: string
+          created_at?: string | null
+          currency?: Database["public"]["Enums"]["currency_type"] | null
+          id?: string
+          product_id?: string
+          status?: Database["public"]["Enums"]["payment_status"] | null
+          updated_at?: string | null
+          verification_notes?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       permanent_links: {
         Row: {
           created_at: string | null
@@ -116,18 +163,21 @@ export type Database = {
           created_at: string | null
           full_name: string | null
           id: string
+          role: Database["public"]["Enums"]["user_role"] | null
           whatsapp_number: string | null
         }
         Insert: {
           created_at?: string | null
           full_name?: string | null
           id: string
+          role?: Database["public"]["Enums"]["user_role"] | null
           whatsapp_number?: string | null
         }
         Update: {
           created_at?: string | null
           full_name?: string | null
           id?: string
+          role?: Database["public"]["Enums"]["user_role"] | null
           whatsapp_number?: string | null
         }
         Relationships: []
@@ -163,7 +213,9 @@ export type Database = {
     }
     Enums: {
       currency_type: "XAF" | "USD"
+      payment_status: "pending" | "verified" | "rejected"
       permanent_link_status: "active" | "available"
+      user_role: "admin" | "seller" | "buyer"
     }
     CompositeTypes: {
       [_ in never]: never

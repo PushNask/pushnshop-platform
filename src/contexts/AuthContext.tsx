@@ -1,29 +1,128 @@
 import { createContext, useContext, useState, useEffect } from 'react'
+import { User, Session } from '@supabase/supabase-js'
+import { Navigate, useLocation } from 'react-router-dom'
+import { supabase } from '@/integrations/supabase/client'
+import type { Database } from '@/integrations/supabase/types'
+
+type UserRole = Database['public']['Enums']['user_role']
 
 type AuthContextType = {
-  user: any | null
+  user: User | null
+  session: Session | null
+  userRole: UserRole | null
   loading: boolean
+  signIn: (email: string, password: string) => Promise<void>
+  signOut: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
-  loading: true
+  session: null,
+  userRole: null,
+  loading: true,
+  signIn: async () => {},
+  signOut: async () => {},
 })
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<any | null>(null)
+  const [user, setUser] = useState<User | null>(null)
+  const [session, setSession] = useState<Session | null>(null)
+  const [userRole, setUserRole] = useState<UserRole | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // TODO: Implement Supabase auth logic here
-    setLoading(false)
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+      setUser(session?.user ?? null)
+      if (session?.user) {
+        fetchUserRole(session.user.id)
+      }
+    })
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      setSession(session)
+      setUser(session?.user ?? null)
+      if (session?.user) {
+        await fetchUserRole(session.user.id)
+      } else {
+        setUserRole(null)
+      }
+      setLoading(false)
+    })
+
+    return () => subscription.unsubscribe()
   }, [])
 
+  const fetchUserRole = async (userId: string) => {
+    const { data, error } = await supabase
+      .from('users')
+      .select('role')
+      .eq('id', userId)
+      .single()
+
+    if (error) {
+      console.error('Error fetching user role:', error)
+      return
+    }
+
+    setUserRole(data.role)
+  }
+
+  const signIn = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+    if (error) throw error
+  }
+
+  const signOut = async () => {
+    const { error } = await supabase.auth.signOut()
+    if (error) throw error
+  }
+
   return (
-    <AuthContext.Provider value={{ user, loading }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        session,
+        userRole,
+        loading,
+        signIn,
+        signOut,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   )
 }
 
 export const useAuth = () => useContext(AuthContext)
+
+type ProtectedRouteProps = {
+  children: React.ReactNode
+  allowedRoles?: UserRole[]
+}
+
+export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
+  const { user, userRole, loading } = useAuth()
+  const location = useLocation()
+
+  if (loading) {
+    return <div className="flex justify-center p-8">Loading...</div>
+  }
+
+  if (!user) {
+    return <Navigate to="/login" state={{ from: location }} replace />
+  }
+
+  if (allowedRoles && !allowedRoles.includes(userRole as UserRole)) {
+    return <Navigate to="/" replace />
+  }
+
+  return <>{children}</>
+}
