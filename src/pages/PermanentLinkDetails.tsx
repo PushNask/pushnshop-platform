@@ -21,17 +21,15 @@ const PermanentLinkDetails = () => {
         .from('permanent_links')
         .select(`
           *,
-          listing:listings!permanent_link_id (
-            product:products (
-              *,
-              seller:users (
-                full_name,
-                whatsapp_number
-              ),
-              images:product_images (
-                url,
-                alt
-              )
+          product:products (
+            *,
+            seller:users (
+              full_name,
+              whatsapp_number
+            ),
+            images:product_images (
+              url,
+              alt
             )
           )
         `)
@@ -40,11 +38,9 @@ const PermanentLinkDetails = () => {
 
       if (error) throw error
       return data as PermanentLink & {
-        listing: {
-          product: Product & {
-            seller: User
-            images: ProductImage[]
-          }
+        product: Product & {
+          seller: User
+          images: ProductImage[]
         }
       }
     },
@@ -54,11 +50,11 @@ const PermanentLinkDetails = () => {
     return <div className="flex justify-center p-8">Loading...</div>
   }
 
-  if (!linkData || !linkData.listing?.product) {
+  if (!linkData || !linkData.product) {
     return <div className="flex justify-center p-8">Product not found</div>
   }
 
-  const product = linkData.listing.product
+  const product = linkData.product
 
   return (
     <div className="container mx-auto p-4">
