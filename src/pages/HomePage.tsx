@@ -2,11 +2,27 @@ import { useQuery } from '@tanstack/react-query'
 import { linkService } from '@/services/linkService'
 import ProductCard from '@/components/products/ProductCard'
 import { useToast } from '@/hooks/use-toast'
+import type { Database } from '@/integrations/supabase/types'
+
+type PermanentLink = {
+  id: number
+  product: {
+    id: string
+    title: string
+    description: string
+    price: number
+    currency: Database['public']['Enums']['currency_type']
+    images: { url: string }[]
+    seller: {
+      whatsapp_number: string | null
+    }
+  }
+}
 
 const HomePage = () => {
   const { toast } = useToast()
   
-  const { data: links, error } = useQuery({
+  const { data: links, error } = useQuery<PermanentLink[]>({
     queryKey: ['active-permanent-links'],
     queryFn: linkService.getActivePermanentLinks,
     refetchInterval: 30000, // Refresh every 30 seconds
