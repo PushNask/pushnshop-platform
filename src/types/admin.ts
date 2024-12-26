@@ -18,6 +18,8 @@ export interface AdminMetrics {
     revenueTrend: number;
     systemHealth: 'Excellent' | 'Good' | 'Warning';
     systemStatus: SystemStatus;
+    pendingProducts: number;
+    pendingPayments: number;
   };
   userMetrics: {
     growth: Array<{
@@ -66,6 +68,7 @@ export interface Payment {
 export interface Product {
   id: string;
   title: string;
+  description: string;
   price: number;
   currency: CurrencyType;
   created_at: string;
