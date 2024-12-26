@@ -158,6 +158,36 @@ export type Database = {
           },
         ]
       }
+      system_settings: {
+        Row: {
+          commission_rate: number
+          default_duration_hours: number
+          id: number
+          max_product_price: number
+          min_product_price: number
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          commission_rate?: number
+          default_duration_hours?: number
+          id?: number
+          max_product_price?: number
+          min_product_price?: number
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          commission_rate?: number
+          default_duration_hours?: number
+          id?: number
+          max_product_price?: number
+          min_product_price?: number
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           created_at: string | null
@@ -197,6 +227,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      get_system_settings: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       increment_link_analytics: {
         Args: {
           p_link_id: number
@@ -209,6 +243,15 @@ export type Database = {
           link_id: number
         }
         Returns: undefined
+      }
+      update_system_settings: {
+        Args: {
+          p_commission_rate?: number
+          p_min_product_price?: number
+          p_max_product_price?: number
+          p_default_duration_hours?: number
+        }
+        Returns: Json
       }
     }
     Enums: {
