@@ -9,6 +9,8 @@ import HomePage from './pages/HomePage'
 import ProductDetails from './pages/ProductDetails'
 import PermanentLinkDetails from './pages/PermanentLinkDetails'
 import SellerDashboard from './pages/SellerDashboard'
+import Login from './pages/auth/Login'
+import SignUp from './pages/auth/SignUp'
 
 const queryClient = new QueryClient()
 
@@ -25,6 +27,8 @@ const App = () => (
             <Route path="/seller" element={<SellerDashboard />} />
             <Route path="/details/:id" element={<ProductDetails />} />
             <Route path="/p:linkNumber/details" element={<PermanentLinkDetails />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<SignUp />} />
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
