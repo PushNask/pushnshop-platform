@@ -12,6 +12,7 @@ import { LinksManagement } from '@/components/admin/LinksManagement'
 import { UserManagement } from '@/components/admin/UserManagement'
 import { Analytics } from '@/components/admin/Analytics'
 import { SystemSettings } from '@/components/admin/SystemSettings'
+import { SystemMonitoring } from '@/components/admin/SystemMonitoring'
 import { Navigate } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 import type { AdminMetrics } from '@/types/admin'
@@ -125,6 +126,7 @@ const AdminDashboard = () => {
           <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
+          <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
         </TabsList>
         <TabsContent value="products">
           <ProductManagement />
@@ -143,6 +145,9 @@ const AdminDashboard = () => {
         </TabsContent>
         <TabsContent value="settings">
           <SystemSettings />
+        </TabsContent>
+        <TabsContent value="monitoring">
+          <SystemMonitoring />
         </TabsContent>
       </Tabs>
     </div>
