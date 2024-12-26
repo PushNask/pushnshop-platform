@@ -13,18 +13,26 @@ import { UserManagement } from '@/components/admin/UserManagement'
 import { Analytics } from '@/components/admin/Analytics'
 import { SystemSettings } from '@/components/admin/SystemSettings'
 import { SystemMonitoring } from '@/components/admin/SystemMonitoring'
-import { Navigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 import type { AdminMetrics } from '@/types/admin'
 
 const AdminDashboard = () => {
-  const { userRole } = useAuth()
+  const { user, userRole, loading: authLoading } = useAuth()
   const { toast } = useToast()
+  const navigate = useNavigate()
 
   // Redirect if not admin
-  if (userRole !== 'admin') {
-    return <Navigate to="/" replace />
-  }
+  useEffect(() => {
+    if (!authLoading && (!user || userRole !== 'admin')) {
+      toast({
+        variant: "destructive",
+        title: "Access Denied",
+        description: "You must be an admin to view this page."
+      })
+      navigate('/')
+    }
+  }, [user, userRole, authLoading, navigate, toast])
 
   const { data: metrics, error, isLoading } = useQuery({
     queryKey: ['adminMetrics'],
@@ -42,7 +50,8 @@ const AdminDashboard = () => {
       return data as unknown as AdminMetrics
     },
     retry: 1,
-    staleTime: 30000
+    staleTime: 30000,
+    enabled: !!user && userRole === 'admin' // Only fetch if user is admin
   })
 
   useEffect(() => {
@@ -56,9 +65,21 @@ const AdminDashboard = () => {
     }
   }, [error, toast])
 
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    )
+  }
+
+  if (!user || userRole !== 'admin') {
+    return null // The useEffect above will handle the redirect
+  }
+
   if (error) {
     return (
-      <Alert variant="destructive" className="my-4">
+      <Alert variant="destructive" className="m-4">
         <AlertDescription>
           Failed to load the dashboard. Please try again later.
         </AlertDescription>

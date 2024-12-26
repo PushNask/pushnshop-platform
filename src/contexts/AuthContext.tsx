@@ -33,10 +33,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session:', session)
       setSession(session)
       setUser(session?.user ?? null)
       if (session?.user) {
         fetchUserRole(session.user.id)
+      } else {
+        setLoading(false)
       }
     })
 
@@ -44,14 +47,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      console.log('Auth state changed:', _event, session)
       setSession(session)
       setUser(session?.user ?? null)
       if (session?.user) {
         await fetchUserRole(session.user.id)
       } else {
         setUserRole(null)
+        setLoading(false)
       }
-      setLoading(false)
     })
 
     return () => subscription.unsubscribe()
@@ -59,6 +63,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const fetchUserRole = async (userId: string) => {
     try {
+      console.log('Fetching user role for:', userId)
       const { data, error } = await supabase
         .from('users')
         .select('role')
@@ -67,12 +72,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (error) {
         console.error('Error fetching user role:', error)
+        setLoading(false)
         return
       }
 
       // If no user found, they might need to be created
       if (!data) {
-        // Get user details from auth
+        console.log('No user profile found, creating one...')
         const { data: { user } } = await supabase.auth.getUser()
         if (user?.user_metadata) {
           const { error: insertError } = await supabase
@@ -86,21 +92,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
           if (insertError) {
             console.error('Error creating user profile:', insertError)
+            setLoading(false)
             return
           }
 
           setUserRole(user.user_metadata.role as UserRole || 'buyer')
-          return
         }
+      } else {
+        console.log('User role found:', data.role)
+        setUserRole(data.role)
       }
-
-      setUserRole(data?.role || null)
     } catch (error) {
       console.error('Error in fetchUserRole:', error)
+    } finally {
+      setLoading(false)
     }
   }
 
   const signIn = async (email: string, password: string) => {
+    console.log('Attempting sign in for:', email)
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -109,6 +119,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }
 
   const signOut = async () => {
+    console.log('Signing out...')
     const { error } = await supabase.auth.signOut()
     if (error) throw error
   }
@@ -141,7 +152,11 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
   const location = useLocation()
 
   if (loading) {
-    return <div className="flex justify-center p-8">Loading...</div>
+    return (
+      <div className="flex justify-center items-center min-h-[50vh]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    )
   }
 
   if (!user) {
