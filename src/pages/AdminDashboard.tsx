@@ -13,6 +13,7 @@ import { UserManagement } from '@/components/admin/UserManagement'
 import { Analytics } from '@/components/admin/Analytics'
 import { SystemSettings } from '@/components/admin/SystemSettings'
 import { Navigate } from 'react-router-dom'
+import type { AdminMetrics } from '@/types/admin'
 
 const AdminDashboard = () => {
   const { userRole } = useAuth()
@@ -30,7 +31,7 @@ const AdminDashboard = () => {
         time_range: '24h'
       })
       if (error) throw error
-      return data
+      return data as unknown as AdminMetrics
     },
     refetchInterval: 30000 // Refresh every 30 seconds
   })

@@ -23,7 +23,7 @@ export const Analytics = () => {
         time_range: '30d'
       })
       if (error) throw error
-      return data as AdminMetrics
+      return data as unknown as AdminMetrics
     }
   })
 

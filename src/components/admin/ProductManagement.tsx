@@ -10,17 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-
-interface Product {
-  id: string;
-  title: string;
-  price: number;
-  currency: string;
-  created_at: string;
-  seller: {
-    full_name: string;
-  };
-}
+import type { Product } from '@/types/admin'
 
 export const ProductManagement = () => {
   const { toast } = useToast()
@@ -34,7 +24,7 @@ export const ProductManagement = () => {
         .order('created_at', { ascending: false })
       
       if (error) throw error
-      return data as Product[]
+      return data as unknown as Product[]
     }
   })
 

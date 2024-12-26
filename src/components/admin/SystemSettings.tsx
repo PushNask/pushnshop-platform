@@ -9,7 +9,7 @@ export const SystemSettings = () => {
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_system_metrics')
       if (error) throw error
-      return data as SystemMetrics
+      return data as unknown as SystemMetrics
     },
     refetchInterval: 30000 // Refresh every 30 seconds
   })
