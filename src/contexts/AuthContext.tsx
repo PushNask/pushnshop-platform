@@ -58,18 +58,46 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [])
 
   const fetchUserRole = async (userId: string) => {
-    const { data, error } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', userId)
-      .single()
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', userId)
+        .maybeSingle()
 
-    if (error) {
-      console.error('Error fetching user role:', error)
-      return
+      if (error) {
+        console.error('Error fetching user role:', error)
+        return
+      }
+
+      // If no user found, they might need to be created
+      if (!data) {
+        // Get user details from auth
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user?.user_metadata) {
+          const { error: insertError } = await supabase
+            .from('users')
+            .insert({
+              id: userId,
+              full_name: user.user_metadata.full_name,
+              whatsapp_number: user.user_metadata.whatsapp_number,
+              role: user.user_metadata.role || 'buyer'
+            })
+
+          if (insertError) {
+            console.error('Error creating user profile:', insertError)
+            return
+          }
+
+          setUserRole(user.user_metadata.role as UserRole || 'buyer')
+          return
+        }
+      }
+
+      setUserRole(data?.role || null)
+    } catch (error) {
+      console.error('Error in fetchUserRole:', error)
     }
-
-    setUserRole(data.role)
   }
 
   const signIn = async (email: string, password: string) => {
