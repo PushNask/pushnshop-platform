@@ -4,7 +4,7 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from '@/contexts/AuthContext'
-import Index from './pages/Index'
+import HomePage from './pages/HomePage'
 import ProductDetails from './pages/ProductDetails'
 import PermanentLinkDetails from './pages/PermanentLinkDetails'
 import SellerDashboard from './pages/SellerDashboard'
@@ -19,7 +19,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<HomePage />} />
             <Route path="/seller" element={<SellerDashboard />} />
             <Route path="/details/:id" element={<ProductDetails />} />
             <Route path="/p:linkNumber/details" element={<PermanentLinkDetails />} />
