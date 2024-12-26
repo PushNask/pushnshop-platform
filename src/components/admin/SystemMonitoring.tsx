@@ -4,14 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { Loader2 } from 'lucide-react'
-
-interface SystemMetrics {
-  cpu: number
-  memory: number
-  response_time: number
-  error_rate: number
-  active_users: number
-}
+import type { SystemMetrics } from '@/types/admin'
 
 export const SystemMonitoring = () => {
   const { data: metrics, error, isLoading } = useQuery<SystemMetrics>({
@@ -19,7 +12,12 @@ export const SystemMonitoring = () => {
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_system_metrics')
       if (error) throw error
-      return data as SystemMetrics
+      // Ensure the response matches our SystemMetrics type
+      const typedData = data as SystemMetrics
+      if (!typedData || typeof typedData.cpu !== 'number') {
+        throw new Error('Invalid system metrics data format')
+      }
+      return typedData
     },
     refetchInterval: 60000, // Refresh every minute
   })
