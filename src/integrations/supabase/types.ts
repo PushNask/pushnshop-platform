@@ -298,6 +298,48 @@ export type Database = {
         }
         Returns: { token: string }
       }
+      get_admin_dashboard_metrics: {
+        Args: {
+          time_range: string
+        }
+        Returns: Json
+      }
+      get_system_metrics: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      get_system_settings: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      increment_link_analytics: {
+        Args: {
+          p_link_id: number
+          p_column: string
+        }
+        Returns: undefined
+      }
+      increment_rotation_count: {
+        Args: {
+          link_id: number
+        }
+        Returns: undefined
+      }
+      is_super_admin_email: {
+        Args: {
+          email: string
+        }
+        Returns: boolean
+      }
+      update_system_settings: {
+        Args: {
+          p_commission_rate?: number
+          p_min_product_price?: number
+          p_max_product_price?: number
+          p_default_duration_hours?: number
+        }
+        Returns: Json
+      }
       validate_csrf_token: {
         Args: {
           p_token: string
@@ -327,7 +369,7 @@ export type Tables<
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
     ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
         Database[PublicTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
   ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
       Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
@@ -339,10 +381,10 @@ export type Tables<
         PublicSchema["Views"])
     ? (PublicSchema["Tables"] &
         PublicSchema["Views"])[PublicTableNameOrOptions] extends {
-        Row: infer R
-      }
-      ? R
-      : never
+      Row: infer R
+    }
+    ? R
+    : never
     : never
 
 export type TablesInsert<
@@ -360,10 +402,10 @@ export type TablesInsert<
     : never
   : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
     ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
-        Insert: infer I
-      }
-      ? I
-      : never
+      Insert: infer I
+    }
+    ? I
+    : never
     : never
 
 export type TablesUpdate<
