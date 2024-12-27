@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom'
 import { vi } from 'vitest'
+import { supabase } from './integrations/supabase/client'
 
 // Mock IntersectionObserver
 const mockIntersectionObserver = vi.fn()
@@ -27,4 +28,24 @@ window.matchMedia = vi.fn().mockImplementation(query => ({
   addEventListener: vi.fn(),
   removeEventListener: vi.fn(),
   dispatchEvent: vi.fn(),
+}))
+
+// Mock Supabase
+vi.mock('./integrations/supabase/client', () => ({
+  supabase: {
+    auth: {
+      signInWithPassword: vi.fn(),
+      signOut: vi.fn(),
+      getSession: vi.fn(),
+      onAuthStateChange: vi.fn(() => ({
+        data: { subscription: { unsubscribe: vi.fn() } },
+      })),
+    },
+    from: vi.fn(() => ({
+      select: vi.fn(),
+      insert: vi.fn(),
+      update: vi.fn(),
+      delete: vi.fn(),
+    })),
+  },
 }))
