@@ -22,35 +22,3 @@ export const logError = (
     // This could be Sentry, LogRocket, or your own logging service
   }
 }
-
-export const handleAuthError = (error: unknown, context: string) => {
-  logError(error, context)
-  
-  const message = error instanceof Error ? error.message : 'An unexpected error occurred'
-  
-  toast({
-    variant: 'destructive',
-    title: 'Authentication Error',
-    description: message,
-  })
-}
-
-export const handlePaymentError = (error: unknown, context: string) => {
-  logError(error, context)
-  
-  toast({
-    variant: 'destructive',
-    title: 'Payment Error',
-    description: 'Failed to process payment. Please try again.',
-  })
-}
-
-export const handleUploadError = (error: unknown, context: string) => {
-  logError(error, context)
-  
-  toast({
-    variant: 'destructive',
-    title: 'Upload Error',
-    description: 'Failed to upload file. Please try again.',
-  })
-}
