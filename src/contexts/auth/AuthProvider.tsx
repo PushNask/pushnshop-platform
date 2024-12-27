@@ -37,6 +37,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     console.log('Setting up auth listeners...')
     
+    // Configure Supabase auth to use the current domain
+    const currentDomain = window.location.origin
+    supabase.auth.setSession({
+      access_token: session?.access_token || '',
+      refresh_token: session?.refresh_token || ''
+    })
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log('Initial session:', session)
       setSession(session)
