@@ -3,6 +3,7 @@ import { User, Session } from '@supabase/supabase-js'
 import { Navigate, useLocation } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
+import { useToast } from '@/hooks/use-toast'
 import type { Database } from '@/integrations/supabase/types'
 
 type UserRole = Database['public']['Enums']['user_role']
@@ -30,6 +31,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null)
   const [userRole, setUserRole] = useState<UserRole | null>(null)
   const [loading, setLoading] = useState(true)
+  const { toast } = useToast()
 
   useEffect(() => {
     // Get initial session
@@ -73,11 +75,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (error) {
         console.error('Error fetching user role:', error)
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to fetch user role. Please try again."
+        })
         setLoading(false)
         return
       }
 
-      // If no user found, they might need to be created
       if (!data) {
         console.log('No user profile found, creating one...')
         const { data: { user } } = await supabase.auth.getUser()
@@ -93,6 +99,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
           if (insertError) {
             console.error('Error creating user profile:', insertError)
+            toast({
+              variant: "destructive",
+              title: "Error",
+              description: "Failed to create user profile. Please try again."
+            })
             setLoading(false)
             return
           }
@@ -105,24 +116,46 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     } catch (error) {
       console.error('Error in fetchUserRole:', error)
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "An unexpected error occurred. Please try again."
+      })
     } finally {
       setLoading(false)
     }
   }
 
   const signIn = async (email: string, password: string) => {
-    console.log('Attempting sign in for:', email)
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-    if (error) throw error
+    try {
+      setLoading(true)
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+      if (error) throw error
+    } catch (error) {
+      console.error('Sign in error:', error)
+      throw error
+    } finally {
+      setLoading(false)
+    }
   }
 
   const signOut = async () => {
-    console.log('Signing out...')
-    const { error } = await supabase.auth.signOut()
-    if (error) throw error
+    try {
+      setLoading(true)
+      const { error } = await supabase.auth.signOut()
+      if (error) throw error
+      setUser(null)
+      setSession(null)
+      setUserRole(null)
+    } catch (error) {
+      console.error('Sign out error:', error)
+      throw error
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -151,6 +184,23 @@ type ProtectedRouteProps = {
 export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
   const { user, userRole, loading } = useAuth()
   const location = useLocation()
+  const { toast } = useToast()
+
+  useEffect(() => {
+    if (!loading && !user) {
+      toast({
+        variant: "destructive",
+        title: "Access Denied",
+        description: "Please sign in to continue."
+      })
+    } else if (!loading && allowedRoles && !allowedRoles.includes(userRole as UserRole)) {
+      toast({
+        variant: "destructive",
+        title: "Access Denied",
+        description: "You don't have permission to access this page."
+      })
+    }
+  }, [loading, user, userRole, allowedRoles, toast])
 
   if (loading) {
     return (

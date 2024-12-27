@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useToast } from '@/hooks/use-toast'
 import { Button } from '@/components/ui/button'
@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Link } from 'react-router-dom'
+import { Loader2 } from 'lucide-react'
 
 const Login = () => {
   const [email, setEmail] = useState('')
@@ -21,9 +22,28 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   
-  const { signIn, userRole } = useAuth()
+  const { signIn, user, userRole } = useAuth()
   const { toast } = useToast()
   const navigate = useNavigate()
+  const location = useLocation()
+
+  useEffect(() => {
+    if (user) {
+      const from = location.state?.from?.pathname || getDashboardPath(userRole)
+      navigate(from, { replace: true })
+    }
+  }, [user, userRole, navigate, location])
+
+  const getDashboardPath = (role: string | null) => {
+    switch (role) {
+      case 'seller':
+        return '/seller'
+      case 'admin':
+        return '/admin'
+      default:
+        return '/'
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -36,16 +56,8 @@ const Login = () => {
         title: 'Welcome back!',
         description: 'You have successfully logged in.',
       })
-      
-      // Navigate based on user role
-      if (userRole === 'seller') {
-        navigate('/seller')
-      } else if (userRole === 'admin') {
-        navigate('/admin')
-      } else {
-        navigate('/')
-      }
     } catch (err) {
+      console.error('Login error:', err)
       setError(err instanceof Error ? err.message : 'Failed to sign in')
       toast({
         variant: 'destructive',
@@ -87,6 +99,7 @@ const Login = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={isLoading}
               />
             </div>
             <div className="space-y-2">
@@ -96,6 +109,7 @@ const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                disabled={isLoading}
               />
               <div className="text-sm text-right">
                 <Link
@@ -111,7 +125,14 @@ const Login = () => {
               className="w-full"
               disabled={isLoading}
             >
-              {isLoading ? 'Signing in...' : 'Sign In'}
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                'Sign In'
+              )}
             </Button>
           </form>
         </CardContent>
