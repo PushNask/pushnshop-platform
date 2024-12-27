@@ -2,7 +2,8 @@ import { useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Calendar, DollarSign, Eye, Info, Link } from 'lucide-react'
+import { Calendar, DollarSign, Eye, Info } from 'lucide-react'
+import ShareProduct from '@/components/products/ShareProduct'
 import { supabase } from '@/integrations/supabase/client'
 import type { Database } from '@/integrations/supabase/types'
 
@@ -52,10 +53,13 @@ const ProductDetails = () => {
     <div className="container mx-auto p-4">
       <Card className="max-w-3xl mx-auto">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Info className="h-5 w-5" />
-            {product.title}
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Info className="h-5 w-5" />
+              {product.title}
+            </CardTitle>
+            <ShareProduct productId={product.id} title={product.title} />
+          </div>
         </CardHeader>
         <CardContent className="space-y-6">
           {product.images && product.images[0] && (

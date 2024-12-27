@@ -54,7 +54,7 @@ const LoginForm = () => {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4 animate-fade-up">
       <div className="space-y-2">
         <Input
           type="email"
@@ -63,6 +63,7 @@ const LoginForm = () => {
           onChange={(e) => setEmail(e.target.value)}
           required
           disabled={isLoading}
+          className="bg-background"
         />
       </div>
       <div className="space-y-2">
@@ -73,6 +74,7 @@ const LoginForm = () => {
           onChange={(e) => setPassword(e.target.value)}
           required
           disabled={isLoading}
+          className="bg-background"
         />
       </div>
       <Button
