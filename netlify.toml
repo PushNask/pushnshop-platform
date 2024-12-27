@@ -33,4 +33,18 @@
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    Content-Security-Policy = "default-src 'self' https://thzwoqkfwgxshqkyerzv.supabase.co; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://thzwoqkfwgxshqkyerzv.supabase.co blob: https://*.pushnshop.com; connect-src 'self' https://thzwoqkfwgxshqkyerzv.supabase.co https://*.pushnshop.com;"
+    Content-Security-Policy = "default-src 'self' https://thzwoqkfwgxshqkyerzv.supabase.co; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://thzwoqkfwgxshqkyerzv.supabase.co blob: https://*.pushnshop.com; connect-src 'self' https://thzwoqkfwgxshqkyerzv.supabase.co https://*.pushnshop.com; script-src 'self' 'unsafe-inline' https://cdn.gpteng.co;"
+
+# Asset optimization
+[build.processing]
+  skip_processing = false
+[build.processing.css]
+  bundle = true
+  minify = true
+[build.processing.js]
+  bundle = true
+  minify = true
+[build.processing.html]
+  pretty_urls = true
+[build.processing.images]
+  compress = true

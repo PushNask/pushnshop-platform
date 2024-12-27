@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from '@/hooks/use-toast'
+import { logError } from '@/utils/errorLogger'
 import type { Database } from '@/integrations/supabase/types'
 
 type UserRole = Database['public']['Enums']['user_role']
@@ -73,7 +74,7 @@ export const useAuthSession = ({
       console.log('User role found:', data?.role)
       setUserRole(data?.role ?? null)
     } catch (error) {
-      console.error('Error fetching user role:', error)
+      logError(error, 'Error fetching user role', userId)
       toast({
         variant: "destructive",
         title: "Error",
