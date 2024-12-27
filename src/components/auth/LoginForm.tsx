@@ -27,13 +27,11 @@ const LoginForm = () => {
     console.log('Login attempt:', { email })
 
     try {
-      // First sign in the user
-      const { data: { user: signedInUser }, error: signInError } = await signIn(email, password)
+      await signIn(email, password)
+      const { data: { user: signedInUser }, error: signInError } = await supabase.auth.getUser()
+      
       if (signInError) throw signInError
-
-      if (!signedInUser) {
-        throw new Error('No user data received after sign in')
-      }
+      if (!signedInUser) throw new Error('No user data received after sign in')
 
       // Then check their role with retries
       const role = await checkRoleWithRetry(signedInUser.id, signedInUser.email)
