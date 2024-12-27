@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { useToast } from '@/hooks/use-toast'
+import { useAuthSession } from '@/hooks/useAuthSession'
+import { useAuthRedirect } from '@/hooks/useAuthRedirect'
 import type { Database } from '@/integrations/supabase/types'
 
 type UserRole = Database['public']['Enums']['user_role']
@@ -34,65 +36,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const { toast } = useToast()
   const navigate = useNavigate()
 
-  useEffect(() => {
-    console.log('Setting up auth listeners...')
-    
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Initial session:', session)
-      setSession(session)
-      setUser(session?.user ?? null)
-      if (session?.user) {
-        fetchUserRole(session.user.id)
-      } else {
-        setLoading(false)
-      }
-    })
-
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      console.log('Auth state changed:', _event, session)
-      setSession(session)
-      setUser(session?.user ?? null)
-      if (session?.user) {
-        await fetchUserRole(session.user.id)
-      } else {
-        setUserRole(null)
-        setLoading(false)
-      }
-    })
-
-    return () => subscription.unsubscribe()
-  }, [])
-
-  const fetchUserRole = async (userId: string) => {
-    try {
-      console.log('Fetching user role for:', userId)
-      const { data, error } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', userId)
-        .maybeSingle()
-
-      if (error) throw error
-
-      if (data) {
-        console.log('User role found:', data.role)
-        setUserRole(data.role)
-      }
-    } catch (error) {
-      console.error('Error in fetchUserRole:', error)
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to fetch user role. Please try again.'
-      })
-    } finally {
-      setLoading(false)
-    }
-  }
+  // Use custom hooks for auth logic
+  useAuthSession({ setUser, setSession, setUserRole, setLoading })
+  useAuthRedirect({ user, userRole, navigate })
 
   const signIn = async (email: string, password: string) => {
     try {
