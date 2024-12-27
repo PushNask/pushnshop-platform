@@ -16,10 +16,12 @@ const LoginForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (isLoading) return // Prevent multiple submissions
+
     setIsLoading(true)
+    console.log('Login attempt:', { email })
 
     try {
-      console.log('Login attempt:', { email })
       await signIn(email, password)
       
       // Get the redirect path from location state or default based on role
@@ -34,13 +36,15 @@ const LoginForm = () => {
       navigate(from, { replace: true })
     } catch (err) {
       console.error('Login error:', err)
+      setIsLoading(false) // Important: Reset loading state on error
+      
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Failed to sign in. Please check your credentials.',
+        description: err instanceof Error 
+          ? err.message 
+          : 'Failed to sign in. Please check your credentials.',
       })
-    } finally {
-      setIsLoading(false)
     }
   }
 
@@ -66,6 +70,7 @@ const LoginForm = () => {
           required
           disabled={isLoading}
           className="bg-background"
+          autoComplete="email"
         />
       </div>
       <div className="space-y-2">
@@ -77,6 +82,7 @@ const LoginForm = () => {
           required
           disabled={isLoading}
           className="bg-background"
+          autoComplete="current-password"
         />
       </div>
       <Button
