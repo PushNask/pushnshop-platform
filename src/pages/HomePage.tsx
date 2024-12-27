@@ -11,9 +11,20 @@ const HomePage = () => {
   const { toast } = useToast()
   const navigate = useNavigate()
   
-  const { data: links, error } = useQuery<PermanentLink[]>({
+  const { data: links, error } = useQuery({
     queryKey: ['active-permanent-links'],
-    queryFn: linkService.getActivePermanentLinks
+    queryFn: linkService.getActivePermanentLinks,
+    // Remove any auth requirements
+    meta: {
+      errorHandler: (error: Error) => {
+        console.error('Error fetching products:', error)
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: 'Failed to load products'
+        })
+      }
+    }
   })
 
   if (error) {
@@ -59,23 +70,23 @@ const HomePage = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center space-y-4">
               <ShoppingBag className="mx-auto h-12 w-12 text-primary" />
-              <h3 className="text-xl font-semibold">List Your Products</h3>
+              <h3 className="text-xl font-semibold">Browse Products</h3>
               <p className="text-muted-foreground">
-                Create listings quickly and reach local buyers
+                Find great local deals from verified sellers
               </p>
             </div>
             <div className="text-center space-y-4">
               <Shield className="mx-auto h-12 w-12 text-primary" />
-              <h3 className="text-xl font-semibold">Verified Transactions</h3>
+              <h3 className="text-xl font-semibold">Contact Seller</h3>
               <p className="text-muted-foreground">
-                Safe and secure payment verification system
+                Connect directly via WhatsApp with sellers
               </p>
             </div>
             <div className="text-center space-y-4">
               <Clock className="mx-auto h-12 w-12 text-primary" />
               <h3 className="text-xl font-semibold">Quick Deals</h3>
               <p className="text-muted-foreground">
-                Connect instantly via WhatsApp with sellers
+                Meet locally and complete your transaction
               </p>
             </div>
           </div>
