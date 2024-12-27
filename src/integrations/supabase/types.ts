@@ -145,34 +145,37 @@ export type Database = {
         Row: {
           created_at: string | null
           currency: Database["public"]["Enums"]["currency_type"] | null
+          deleted_at: string | null
           description: string
           expires_at: string | null
           id: string
           price: number
           seller_id: string
-          status: string | null
+          status: Database["public"]["Enums"]["product_status"] | null
           title: string
         }
         Insert: {
           created_at?: string | null
           currency?: Database["public"]["Enums"]["currency_type"] | null
+          deleted_at?: string | null
           description: string
           expires_at?: string | null
           id?: string
           price: number
           seller_id: string
-          status?: string | null
+          status?: Database["public"]["Enums"]["product_status"] | null
           title: string
         }
         Update: {
           created_at?: string | null
           currency?: Database["public"]["Enums"]["currency_type"] | null
+          deleted_at?: string | null
           description?: string
           expires_at?: string | null
           id?: string
           price?: number
           seller_id?: string
-          status?: string | null
+          status?: Database["public"]["Enums"]["product_status"] | null
           title?: string
         }
         Relationships: [
@@ -352,6 +355,7 @@ export type Database = {
       currency_type: "XAF" | "USD"
       payment_status: "pending" | "verified" | "rejected"
       permanent_link_status: "active" | "available"
+      product_status: "draft" | "pending" | "active" | "expired"
       user_role: "admin" | "seller" | "buyer"
     }
     CompositeTypes: {
