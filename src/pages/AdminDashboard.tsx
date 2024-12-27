@@ -1,188 +1,60 @@
-import { useEffect } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useToast } from '@/hooks/use-toast'
-import { useAuth } from '@/contexts/AuthContext'
-import { supabase } from '@/integrations/supabase/client'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { ProductManagement } from '@/components/admin/ProductManagement'
-import { PaymentVerification } from '@/components/admin/PaymentVerification'
-import { LinksManagement } from '@/components/admin/LinksManagement'
-import { UserManagement } from '@/components/admin/UserManagement'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { Analytics } from '@/components/admin/Analytics'
+import { UserManagement } from '@/components/admin/UserManagement'
+import { PaymentVerification } from '@/components/admin/PaymentVerification'
+import { ProductManagement } from '@/components/admin/ProductManagement'
+import { LinksManagement } from '@/components/admin/LinksManagement'
 import { SystemSettings } from '@/components/admin/SystemSettings'
-import { SystemMonitoring } from '@/components/admin/SystemMonitoring'
-import { Navigate, useNavigate } from 'react-router-dom'
-import { Loader2 } from 'lucide-react'
-import type { AdminMetrics } from '@/types/admin'
+import { SystemHealthMonitor } from '@/components/admin/SystemHealthMonitor'
 
 const AdminDashboard = () => {
-  const { user, userRole, loading: authLoading } = useAuth()
-  const { toast } = useToast()
-  const navigate = useNavigate()
-
-  // Redirect if not admin
-  useEffect(() => {
-    if (!authLoading && (!user || userRole !== 'admin')) {
-      toast({
-        variant: "destructive",
-        title: "Access Denied",
-        description: "You must be an admin to view this page."
-      })
-      navigate('/')
-    }
-  }, [user, userRole, authLoading, navigate, toast])
-
-  const { data: metrics, error, isLoading } = useQuery({
-    queryKey: ['adminMetrics'],
-    queryFn: async () => {
-      console.log('Fetching admin metrics...')
-      const { data, error } = await supabase.rpc('get_admin_dashboard_metrics', {
-        time_range: '24h'
-      })
-      if (error) {
-        console.error('Error fetching metrics:', error)
-        throw error
-      }
-      console.log('Metrics data received:', data)
-      // Cast the response to unknown first, then to AdminMetrics
-      return data as unknown as AdminMetrics
-    },
-    retry: 1,
-    staleTime: 30000,
-    enabled: !!user && userRole === 'admin' // Only fetch if user is admin
-  })
-
-  useEffect(() => {
-    if (error) {
-      console.error('Dashboard error:', error)
-      toast({
-        variant: "destructive",
-        title: "Error loading dashboard",
-        description: "Please try refreshing the page or contact support."
-      })
-    }
-  }, [error, toast])
-
-  if (authLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    )
-  }
-
-  if (!user || userRole !== 'admin') {
-    return null // The useEffect above will handle the redirect
-  }
-
-  if (error) {
-    return (
-      <Alert variant="destructive" className="m-4">
-        <AlertDescription>
-          Failed to load the dashboard. Please try again later.
-        </AlertDescription>
-      </Alert>
-    )
-  }
-
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-      
-      {/* Overview Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Products</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {isLoading ? (
-                <Loader2 className="h-6 w-6 animate-spin" />
-              ) : (
-                metrics?.overview?.pendingProducts || 0
-              )}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Payments</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {isLoading ? (
-                <Loader2 className="h-6 w-6 animate-spin" />
-              ) : (
-                metrics?.overview?.pendingPayments || 0
-              )}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {isLoading ? (
-                <Loader2 className="h-6 w-6 animate-spin" />
-              ) : (
-                new Intl.NumberFormat('en-US', {
-                  style: 'currency',
-                  currency: 'XAF'
-                }).format(metrics?.overview?.totalRevenue || 0)
-              )}
-            </div>
-          </CardContent>
-        </Card>
+    <ProtectedRoute allowedRoles={['admin']}>
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+        
+        <Tabs defaultValue="analytics" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="products">Products</TabsTrigger>
+            <TabsTrigger value="payments">Payments</TabsTrigger>
+            <TabsTrigger value="links">Links</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
+            <TabsTrigger value="health">System Health</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="analytics" className="space-y-4">
+            <Analytics />
+          </TabsContent>
+
+          <TabsContent value="users" className="space-y-4">
+            <UserManagement />
+          </TabsContent>
+
+          <TabsContent value="products" className="space-y-4">
+            <ProductManagement />
+          </TabsContent>
+
+          <TabsContent value="payments" className="space-y-4">
+            <PaymentVerification />
+          </TabsContent>
+
+          <TabsContent value="links" className="space-y-4">
+            <LinksManagement />
+          </TabsContent>
+
+          <TabsContent value="settings" className="space-y-4">
+            <SystemSettings />
+          </TabsContent>
+
+          <TabsContent value="health" className="space-y-4">
+            <SystemHealthMonitor />
+          </TabsContent>
+        </Tabs>
       </div>
-
-      {/* System Health Alert if needed */}
-      {metrics?.overview?.systemHealth === 'Warning' && (
-        <Alert>
-          <AlertDescription>
-            System performance is degraded. Check System Settings for details.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {/* Main Tabs */}
-      <Tabs defaultValue="products" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="products">Products</TabsTrigger>
-          <TabsTrigger value="payments">Payments</TabsTrigger>
-          <TabsTrigger value="links">Links</TabsTrigger>
-          <TabsTrigger value="users">Users</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
-          <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
-        </TabsList>
-        <TabsContent value="products">
-          <ProductManagement />
-        </TabsContent>
-        <TabsContent value="payments">
-          <PaymentVerification />
-        </TabsContent>
-        <TabsContent value="links">
-          <LinksManagement />
-        </TabsContent>
-        <TabsContent value="users">
-          <UserManagement />
-        </TabsContent>
-        <TabsContent value="analytics">
-          <Analytics />
-        </TabsContent>
-        <TabsContent value="settings">
-          <SystemSettings />
-        </TabsContent>
-        <TabsContent value="monitoring">
-          <SystemMonitoring />
-        </TabsContent>
-      </Tabs>
-    </div>
+    </ProtectedRoute>
   )
 }
 

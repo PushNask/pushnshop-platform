@@ -1,118 +1,50 @@
-import { useInfiniteQuery } from '@tanstack/react-query'
-import { useAuth } from '@/contexts/AuthContext'
+import { useQuery } from '@tanstack/react-query'
+import { useAuth } from '@/contexts/auth/AuthProvider'
 import { supabase } from '@/integrations/supabase/client'
-import { useInView } from 'react-intersection-observer'
-import { useEffect } from 'react'
-import { useToast } from '@/hooks/use-toast'
 import ProductCard from '@/components/products/ProductCard'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2 } from 'lucide-react'
-import type { Database } from '@/integrations/supabase/types'
 
-type Product = Database['public']['Tables']['products']['Row'] & {
-  images: { url: string }[]
-  seller: {
-    whatsapp_number: string | null
-  }
-}
+const ProductListing = () => {
+  const { user } = useAuth()
 
-const ITEMS_PER_PAGE = 12
+  const { data: products, error, isLoading } = useQuery({
+    queryKey: ['products', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('seller_id', user?.id)
 
-const ProductListing = ({ sellerView = false }) => {
-  const { user, userRole } = useAuth()
-  const { toast } = useToast()
-  const { ref, inView } = useInView()
-
-  const fetchProducts = async ({ pageParam = 0 }) => {
-    let query = supabase
-      .from('products')
-      .select(`
-        *,
-        images:product_images (
-          url
-        ),
-        seller:users (
-          whatsapp_number
-        )
-      `)
-      .range(pageParam * ITEMS_PER_PAGE, (pageParam + 1) * ITEMS_PER_PAGE - 1)
-      .order('created_at', { ascending: false })
-
-    // If in seller view, only show their products
-    if (sellerView && user) {
-      query = query.eq('seller_id', user.id)
-    } else {
-      // In public view, only show active products
-      query = query.eq('status', 'active')
-    }
-
-    const { data, error } = await query
-
-    if (error) throw error
-    return data as Product[]
-  }
-
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    status,
-    error
-  } = useInfiniteQuery({
-    queryKey: ['products', sellerView, user?.id],
-    queryFn: fetchProducts,
-    getNextPageParam: (lastPage, allPages) => {
-      return lastPage.length === ITEMS_PER_PAGE ? allPages.length : undefined
+      if (error) throw error
+      return data
     },
-    initialPageParam: 0
+    enabled: !!user?.id, // Only run the query if the user is logged in
   })
 
-  useEffect(() => {
-    if (inView && hasNextPage && !isFetchingNextPage) {
-      fetchNextPage()
-    }
-  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage])
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[200px]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    )
+  }
 
-  if (status === 'error') {
-    toast({
-      variant: 'destructive',
-      title: 'Error',
-      description: error?.message || 'Failed to load products'
-    })
+  if (error) {
+    return (
+      <Alert variant="destructive" className="my-4">
+        <AlertDescription>
+          Failed to load products. Please try again later.
+        </AlertDescription>
+      </Alert>
+    )
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {data?.pages.map((group, i) => (
-          <div key={i} className="contents">
-            {group.map((product) => (
-              <ProductCard
-                key={product.id}
-                id={product.id}
-                title={product.title}
-                description={product.description}
-                price={product.price}
-                currency={product.currency}
-                imageUrl={product.images?.[0]?.url}
-                whatsappNumber={product.seller?.whatsapp_number}
-                linkId={0} // This will be set when used with permanent links
-                showActions={sellerView}
-              />
-            ))}
-          </div>
-        ))}
-      </div>
-
-      {/* Loading indicator */}
-      <div
-        ref={ref}
-        className="flex justify-center p-4"
-      >
-        {isFetchingNextPage && (
-          <Loader2 className="h-6 w-6 animate-spin text-primary" />
-        )}
-      </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {products?.map(product => (
+        <ProductCard key={product.id} product={product} />
+      ))}
     </div>
   )
 }

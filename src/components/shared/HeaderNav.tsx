@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Globe, User, LogIn, Home } from 'lucide-react'
+import { Globe, Home, LogIn } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { HeaderUserMenu } from './HeaderUserMenu'
 import type { User } from '@supabase/supabase-js'
