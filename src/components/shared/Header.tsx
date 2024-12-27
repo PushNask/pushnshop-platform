@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { Menu, X, Globe, User, LogIn } from 'lucide-react'
+import { Link, useLocation } from 'react-router-dom'
+import { Menu, X, Globe, User, LogIn, Home } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import {
   DropdownMenu,
@@ -13,7 +13,9 @@ import { Button } from '@/components/ui/button'
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false)
-  const { user, signOut } = useAuth()
+  const { user, userRole, signOut } = useAuth()
+  const location = useLocation()
+  const isAdminRoute = location.pathname.startsWith('/admin')
 
   const toggleMenu = () => setIsOpen(!isOpen)
 
@@ -45,6 +47,15 @@ const Header = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex md:items-center md:space-x-4">
+            {isAdminRoute && userRole === 'admin' && (
+              <Link to="/">
+                <Button variant="outline" size="sm">
+                  <Home className="h-4 w-4 mr-2" />
+                  Visit Website
+                </Button>
+              </Link>
+            )}
+            
             <Button
               variant="ghost"
               size="icon"
@@ -69,14 +80,14 @@ const Header = () => {
                     {user.email}
                   </div>
                   <DropdownMenuSeparator />
-                  {user.role === 'seller' && (
+                  {userRole === 'seller' && (
                     <DropdownMenuItem asChild>
                       <Link to="/seller" className="w-full">
                         Seller Dashboard
                       </Link>
                     </DropdownMenuItem>
                   )}
-                  {user.role === 'admin' && (
+                  {userRole === 'admin' && (
                     <DropdownMenuItem asChild>
                       <Link to="/admin" className="w-full">
                         Admin Dashboard
@@ -122,6 +133,19 @@ const Header = () => {
         {isOpen && (
           <div className="md:hidden">
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+              {isAdminRoute && userRole === 'admin' && (
+                <Link to="/" className="block">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full justify-start"
+                  >
+                    <Home className="h-4 w-4 mr-2" />
+                    Visit Website
+                  </Button>
+                </Link>
+              )}
+
               <Button
                 variant="ghost"
                 size="sm"
@@ -136,7 +160,7 @@ const Header = () => {
                   <div className="px-2 py-1.5 text-sm font-medium">
                     {user.email}
                   </div>
-                  {user.role === 'seller' && (
+                  {userRole === 'seller' && (
                     <Link to="/seller" className="block">
                       <Button
                         variant="ghost"
@@ -147,7 +171,7 @@ const Header = () => {
                       </Button>
                     </Link>
                   )}
-                  {user.role === 'admin' && (
+                  {userRole === 'admin' && (
                     <Link to="/admin" className="block">
                       <Button
                         variant="ghost"
