@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuth } from '@/contexts/auth/AuthProvider'
 import { useToast } from '@/hooks/use-toast'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -10,7 +10,7 @@ const LoginForm = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const { signIn } = useAuth()
+  const { signIn, userRole } = useAuth()
   const { toast } = useToast()
   const navigate = useNavigate()
   const location = useLocation()
@@ -25,6 +25,10 @@ const LoginForm = () => {
         title: 'Welcome back!',
         description: 'You have successfully logged in.',
       })
+      
+      // Get the redirect path from location state or default based on role
+      const from = location.state?.from?.pathname || getDashboardPath(userRole)
+      navigate(from, { replace: true })
     } catch (err) {
       console.error('Login error:', err)
       toast({
@@ -34,6 +38,18 @@ const LoginForm = () => {
       })
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  // Helper function to determine the dashboard path based on user role
+  const getDashboardPath = (role: string | null) => {
+    switch (role) {
+      case 'admin':
+        return '/admin'
+      case 'seller':
+        return '/seller'
+      default:
+        return '/'
     }
   }
 
