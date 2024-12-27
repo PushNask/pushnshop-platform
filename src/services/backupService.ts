@@ -1,11 +1,14 @@
 import { supabase } from '@/integrations/supabase/client'
 import { toast } from '@/hooks/use-toast'
+import type { Database } from '@/integrations/supabase/types'
+
+type TableNames = keyof Database['public']['Tables']
 
 export const backupService = {
   async exportData() {
     try {
       // Export critical tables
-      const tables = ['products', 'permanent_links', 'payments']
+      const tables: TableNames[] = ['products', 'permanent_links', 'payments']
       const exports = await Promise.all(
         tables.map(async (table) => {
           const { data, error } = await supabase

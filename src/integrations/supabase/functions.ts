@@ -16,7 +16,7 @@ export const validateCsrfTokenRpc = async (token: string, userId: string) => {
   })
   
   if (error) throw error
-  return data
+  return data as boolean
 }
 
 export const checkLoginAttemptsRpc = async (email: string) => {
@@ -25,5 +25,5 @@ export const checkLoginAttemptsRpc = async (email: string) => {
   })
   
   if (error) throw error
-  return data
+  return data as boolean
 }

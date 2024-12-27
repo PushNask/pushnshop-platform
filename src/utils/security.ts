@@ -30,7 +30,7 @@ export const validateCsrfToken = async (token: string) => {
     return false
   }
 
-  return data
+  return data as boolean
 }
 
 export const checkRateLimit = async (email: string) => {
@@ -45,5 +45,5 @@ export const checkRateLimit = async (email: string) => {
     return false
   }
 
-  return data
+  return data as boolean
 }

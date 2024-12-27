@@ -292,47 +292,18 @@ export type Database = {
         }
         Returns: undefined
       }
-      get_admin_dashboard_metrics: {
+      generate_csrf_token: {
         Args: {
-          time_range: string
+          p_user_id: string
         }
-        Returns: Json
+        Returns: { token: string }
       }
-      get_system_metrics: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      get_system_settings: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      increment_link_analytics: {
+      validate_csrf_token: {
         Args: {
-          p_link_id: number
-          p_column: string
-        }
-        Returns: undefined
-      }
-      increment_rotation_count: {
-        Args: {
-          link_id: number
-        }
-        Returns: undefined
-      }
-      is_super_admin_email: {
-        Args: {
-          email: string
+          p_token: string
+          p_user_id: string
         }
         Returns: boolean
-      }
-      update_system_settings: {
-        Args: {
-          p_commission_rate?: number
-          p_min_product_price?: number
-          p_max_product_price?: number
-          p_default_duration_hours?: number
-        }
-        Returns: Json
       }
     }
     Enums: {
@@ -410,10 +381,10 @@ export type TablesUpdate<
     : never
   : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
     ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
-        Update: infer U
-      }
-      ? U
-      : never
+      Update: infer U
+    }
+    ? U
+    : never
     : never
 
 export type Enums<
