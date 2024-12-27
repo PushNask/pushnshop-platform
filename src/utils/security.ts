@@ -1,49 +1,21 @@
-import { supabase } from '@/integrations/supabase/client'
+import { generateCsrfToken, validateCsrfToken } from '@/integrations/supabase/functions'
 
-export const generateCsrfToken = async () => {
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session?.user) return null
-
-  const { data, error } = await supabase.rpc('generate_csrf_token', {
-    p_user_id: session.user.id
-  })
-
-  if (error) {
+export const getCsrfToken = async (userId: string) => {
+  try {
+    const { token } = await generateCsrfToken(userId)
+    return token
+  } catch (error) {
     console.error('Error generating CSRF token:', error)
-    return null
+    throw error
   }
-
-  return (data as { token: string }).token
 }
 
-export const validateCsrfToken = async (token: string) => {
-  const { data: { session } } = await supabase.auth.getSession()
-  if (!session?.user) return false
-
-  const { data, error } = await supabase.rpc('validate_csrf_token', {
-    p_token: token,
-    p_user_id: session.user.id
-  })
-
-  if (error) {
+export const verifyCsrfToken = async (token: string, userId: string) => {
+  try {
+    const isValid = await validateCsrfToken(token, userId)
+    return isValid
+  } catch (error) {
     console.error('Error validating CSRF token:', error)
-    return false
+    throw error
   }
-
-  return data as boolean
-}
-
-export const checkRateLimit = async (email: string) => {
-  const { data, error } = await supabase.rpc('check_login_attempts', { 
-    p_email: email,
-    p_window_minutes: 15,
-    p_max_attempts: 5
-  })
-
-  if (error) {
-    console.error('Error checking rate limit:', error)
-    return false
-  }
-
-  return data as boolean
 }
