@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client'
 import { useToast } from '@/hooks/use-toast'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import WhatsAppInput from '@/components/shared/WhatsAppInput'
 import {
   Card,
   CardContent,
@@ -14,6 +15,7 @@ import {
 } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Link } from 'react-router-dom'
+import { validateWhatsAppNumber } from '@/utils/validation'
 
 const SignUp = () => {
   const [email, setEmail] = useState('')
@@ -30,6 +32,12 @@ const SignUp = () => {
     e.preventDefault()
     setError('')
     setIsLoading(true)
+
+    if (!validateWhatsAppNumber(whatsappNumber)) {
+      setError('Please enter a valid WhatsApp number')
+      setIsLoading(false)
+      return
+    }
 
     try {
       const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
@@ -106,15 +114,11 @@ const SignUp = () => {
                 required
               />
             </div>
-            <div className="space-y-2">
-              <Input
-                type="tel"
-                placeholder="WhatsApp Number"
-                value={whatsappNumber}
-                onChange={(e) => setWhatsappNumber(e.target.value)}
-                required
-              />
-            </div>
+            <WhatsAppInput
+              value={whatsappNumber}
+              onChange={setWhatsappNumber}
+              required
+            />
             <div className="space-y-2">
               <Input
                 type="password"
