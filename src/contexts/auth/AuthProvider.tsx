@@ -52,7 +52,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       if (signInError) throw signInError
       
-      // Role will be fetched by useAuthSession hook
       console.log('Sign in successful for:', email)
     } catch (error) {
       console.error('Sign in error:', error)
