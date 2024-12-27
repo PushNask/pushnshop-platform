@@ -3,7 +3,7 @@ import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuthSession } from '@/hooks/useAuthSession'
 import { useAuthRedirect } from '@/hooks/useAuthRedirect'
-import { handleAuthError } from '@/utils/errorLogger'
+import { toast } from '@/hooks/use-toast'
 import type { Database } from '@/integrations/supabase/types'
 
 type UserRole = Database['public']['Enums']['user_role']
@@ -49,8 +49,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (error) throw error
       
       console.log('Sign in successful for:', email)
+      toast({
+        title: "Welcome back!",
+        description: "Successfully signed in."
+      })
     } catch (error) {
-      handleAuthError(error, 'SignIn')
+      console.error('Sign in error:', error)
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to sign in. Please check your credentials."
+      })
       throw error
     } finally {
       setLoading(false)
@@ -70,8 +79,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUserRole(null)
       
       console.log('Sign out successful')
+      toast({
+        title: "Signed out",
+        description: "You have been successfully signed out."
+      })
     } catch (error) {
-      handleAuthError(error, 'SignOut')
+      console.error('Sign out error:', error)
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to sign out. Please try again."
+      })
       throw error
     } finally {
       setLoading(false)

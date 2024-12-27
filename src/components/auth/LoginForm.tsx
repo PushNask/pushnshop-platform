@@ -5,7 +5,6 @@ import { toast } from '@/hooks/use-toast'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Loader2 } from 'lucide-react'
-import { logError } from '@/utils/errorLogger'
 
 const LoginForm = () => {
   const [email, setEmail] = useState('')
@@ -23,17 +22,12 @@ const LoginForm = () => {
       console.log('Login attempt:', { email })
       await signIn(email, password)
       
-      toast({
-        title: 'Welcome back!',
-        description: 'You have successfully logged in.',
-      })
-      
       // Get the redirect path from location state or default based on role
       const from = location.state?.from?.pathname || getDashboardPath(userRole)
       console.log('Redirecting to:', from)
       navigate(from, { replace: true })
     } catch (err) {
-      logError(err, 'LoginForm')
+      console.error('Login error:', err)
       toast({
         variant: 'destructive',
         title: 'Error',

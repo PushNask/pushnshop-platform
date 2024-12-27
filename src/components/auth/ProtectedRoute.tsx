@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 import { useAuth } from '@/contexts/auth/AuthProvider'
-import { useToast } from '@/hooks/use-toast'
+import { toast } from '@/hooks/use-toast'
 import type { Database } from '@/integrations/supabase/types'
 
 type UserRole = Database['public']['Enums']['user_role']
@@ -15,7 +15,6 @@ interface ProtectedRouteProps {
 export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
   const { user, userRole, loading } = useAuth()
   const location = useLocation()
-  const { toast } = useToast()
 
   useEffect(() => {
     if (!loading) {
@@ -33,7 +32,7 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
         })
       }
     }
-  }, [loading, user, userRole, allowedRoles, toast])
+  }, [loading, user, userRole, allowedRoles])
 
   if (loading) {
     return (

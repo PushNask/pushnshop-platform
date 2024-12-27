@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/integrations/supabase/client'
-import { logError } from '@/utils/errorLogger'
+import { toast } from '@/hooks/use-toast'
 import type { Database } from '@/integrations/supabase/types'
 
 type UserRole = Database['public']['Enums']['user_role']
@@ -66,12 +66,19 @@ export const useAuthSession = ({
         .eq('id', userId)
         .maybeSingle()
 
-      if (error) throw error
+      if (error) {
+        throw error
+      }
 
       console.log('User role found:', data?.role)
       setUserRole(data?.role ?? null)
     } catch (error) {
-      logError(error, 'FetchUserRole', userId)
+      console.error('Error fetching user role:', error)
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to fetch user role. Please try again."
+      })
       setUserRole(null)
     } finally {
       setLoading(false)

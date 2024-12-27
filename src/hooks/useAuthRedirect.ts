@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { User } from '@supabase/supabase-js'
-import { logError } from '@/utils/errorLogger'
+import { toast } from '@/hooks/use-toast'
 import type { Database } from '@/integrations/supabase/types'
 
 type UserRole = Database['public']['Enums']['user_role']
@@ -46,10 +46,21 @@ export const useAuthRedirect = ({ user, userRole, loading }: UseAuthRedirectProp
             replace: true,
             state: { from: location.pathname }
           })
+          
+          toast({
+            variant: "destructive",
+            title: "Authentication Required",
+            description: "Please sign in to continue."
+          })
           return
         }
       } catch (error) {
-        logError(error, 'AuthRedirect', user?.id)
+        console.error('Auth redirect error:', error)
+        toast({
+          variant: "destructive",
+          title: "Navigation Error",
+          description: "Failed to redirect. Please try again."
+        })
       }
     }
 
