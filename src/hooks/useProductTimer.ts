@@ -76,7 +76,7 @@ export const useProductTimer = (productId: string) => {
             toast({
               title: 'Product Expired',
               description: 'This product listing has expired and is no longer visible to buyers.',
-              variant: 'default'
+              variant: 'destructive'
             })
           } catch (error) {
             console.error('Failed to update expired product:', error)
@@ -103,7 +103,7 @@ export const useProductTimer = (productId: string) => {
         toast({
           title: 'Product Expiring Soon',
           description: 'This product will expire in less than an hour.',
-          variant: 'warning'
+          variant: 'destructive' // Changed from 'warning' to 'destructive'
         })
       }
     }
