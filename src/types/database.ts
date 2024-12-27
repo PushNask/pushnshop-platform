@@ -1,16 +1,7 @@
-import type { Database as GeneratedDatabase } from '@/integrations/supabase/types'
-
-export type Database = GeneratedDatabase
-
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[]
-
-export type CurrencyType = Database['public']['Enums']['currency_type']
-export type PaymentStatus = Database['public']['Enums']['payment_status']
-export type UserRole = Database['public']['Enums']['user_role']
-export type PermanentLinkStatus = Database['public']['Enums']['permanent_link_status']
+export interface User {
+  id: string
+  full_name: string | null
+  whatsapp_number: string | null
+  role: 'admin' | 'seller' | 'buyer'
+  created_at: string
+}
