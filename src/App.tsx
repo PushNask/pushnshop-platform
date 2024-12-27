@@ -3,7 +3,8 @@ import { Toaster as Sonner } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { AuthProvider, ProtectedRoute } from '@/contexts/AuthContext'
+import { AuthProvider } from '@/contexts/auth/AuthProvider'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import Header from './components/shared/Header'
 import Footer from './components/shared/Footer'
 import HomePage from './pages/HomePage'
@@ -15,7 +16,6 @@ import Login from './pages/auth/Login'
 import SignUp from './pages/auth/SignUp'
 import ResetPassword from './pages/auth/ResetPassword'
 import UpdatePassword from './pages/auth/UpdatePassword'
-import { useSessionTimeout } from '@/hooks/useSessionTimeout'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -36,15 +36,13 @@ const queryClient = new QueryClient({
 })
 
 const App = () => {
-  useSessionTimeout()
-
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+    <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
             <div className="flex flex-col min-h-screen">
               <Header />
               <main className="flex-grow container mx-auto px-4 py-8">
@@ -77,10 +75,10 @@ const App = () => {
               </main>
               <Footer />
             </div>
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthProvider>
-    </QueryClientProvider>
+          </TooltipProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </BrowserRouter>
   )
 }
 

@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuth } from '@/contexts/auth/AuthProvider'
 import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/card'
 import LoginHeader from '@/components/auth/LoginHeader'
 import LoginForm from '@/components/auth/LoginForm'
@@ -11,8 +11,12 @@ const Login = () => {
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (user) {
-      const dashboardPath = userRole === 'admin' ? '/admin' : userRole === 'seller' ? '/seller' : '/'
+    if (user && userRole) {
+      const dashboardPath = userRole === 'admin' 
+        ? '/admin' 
+        : userRole === 'seller' 
+          ? '/seller' 
+          : '/'
       navigate(dashboardPath, { replace: true })
     }
   }, [user, userRole, navigate])
