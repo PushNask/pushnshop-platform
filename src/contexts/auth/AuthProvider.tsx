@@ -1,8 +1,9 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { User, Session } from '@supabase/supabase-js'
+import { useNavigate } from 'react-router-dom'
+import { Loader2 } from 'lucide-react'
 import { supabase } from '@/integrations/supabase/client'
 import { useToast } from '@/hooks/use-toast'
-import { useNavigate } from 'react-router-dom'
 import type { Database } from '@/integrations/supabase/types'
 
 type UserRole = Database['public']['Enums']['user_role']
@@ -33,17 +34,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const { toast } = useToast()
   const navigate = useNavigate()
 
-  // Handle initial session and auth state changes
   useEffect(() => {
     console.log('Setting up auth listeners...')
     
-    // Configure Supabase auth to use the current domain
-    const currentDomain = window.location.origin
-    supabase.auth.setSession({
-      access_token: session?.access_token || '',
-      refresh_token: session?.refresh_token || ''
-    })
-
+    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log('Initial session:', session)
       setSession(session)
@@ -55,25 +49,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     })
 
+    // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
       console.log('Auth state changed:', _event, session)
       setSession(session)
       setUser(session?.user ?? null)
-      
       if (session?.user) {
         await fetchUserRole(session.user.id)
-        handleAuthRedirect(session.user.id)
       } else {
         setUserRole(null)
         setLoading(false)
-        navigate('/login')
       }
     })
 
     return () => subscription.unsubscribe()
-  }, [navigate])
+  }, [])
 
   const fetchUserRole = async (userId: string) => {
     try {
@@ -89,42 +81,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (data) {
         console.log('User role found:', data.role)
         setUserRole(data.role)
-        handleAuthRedirect(userId)
       }
     } catch (error) {
-      console.error('Error fetching user role:', error)
+      console.error('Error in fetchUserRole:', error)
       toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to fetch user role. Please try again."
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to fetch user role. Please try again.'
       })
     } finally {
       setLoading(false)
-    }
-  }
-
-  const handleAuthRedirect = async (userId: string) => {
-    try {
-      const { data: userData } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', userId)
-        .maybeSingle()
-
-      if (userData) {
-        switch (userData.role) {
-          case 'admin':
-            navigate('/admin')
-            break
-          case 'seller':
-            navigate('/seller')
-            break
-          default:
-            navigate('/')
-        }
-      }
-    } catch (error) {
-      console.error('Error in redirect:', error)
     }
   }
 
