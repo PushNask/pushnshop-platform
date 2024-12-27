@@ -36,7 +36,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     updateState
   } = useAuthState()
 
-  // Use custom hooks for auth logic
   useAuthSession({ updateState })
   useAuthRedirect({ user, userRole, loading })
 
@@ -53,9 +52,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (signInError) throw signInError
       
       console.log('Sign in successful for:', email)
+      
+      toast({
+        title: "Welcome back!",
+        description: "You have successfully signed in."
+      })
     } catch (error) {
       console.error('Sign in error:', error)
       updateState({ error: error as Error })
+      
+      toast({
+        variant: "destructive",
+        title: "Sign in failed",
+        description: (error as Error).message
+      })
+      
       throw error
     }
   }
@@ -80,6 +91,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } catch (error) {
       console.error('Sign out error:', error)
       updateState({ error: error as Error })
+      
+      toast({
+        variant: "destructive",
+        title: "Sign out failed",
+        description: (error as Error).message
+      })
+      
       throw error
     }
   }
@@ -88,7 +106,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     <AuthContext.Provider
       value={{
         user,
-        session: null, // Handled by useAuthSession
+        session: null,
         userRole,
         loading,
         signIn,

@@ -59,14 +59,18 @@ export const useAuthSession = ({ updateState }: UseAuthSessionProps) => {
         .eq('id', userId)
         .single()
 
-      if (error) throw error
+      if (error) {
+        console.error('Error fetching user role:', error)
+        throw error
+      }
 
+      console.log('User role fetched:', data.role)
       updateState({
         userRole: data.role,
         loading: false
       })
     } catch (error) {
-      console.error('Error fetching user role:', error)
+      console.error('Error in fetchUserRole:', error)
       updateState({
         error: error as Error,
         loading: false
