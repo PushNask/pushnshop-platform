@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Loader2 } from 'lucide-react'
 import { logError } from '@/utils/errorLogger'
+import { supabase } from '@/integrations/supabase/client'
 
 const LoginForm = () => {
   const [email, setEmail] = useState('')
