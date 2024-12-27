@@ -1,6 +1,7 @@
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/integrations/supabase/client'
+import { useAuthState } from '@/hooks/useAuthState'
 import { useAuthSession } from '@/hooks/useAuthSession'
 import { useAuthRedirect } from '@/hooks/useAuthRedirect'
 import { toast } from '@/hooks/use-toast'
@@ -27,72 +28,60 @@ const AuthContext = createContext<AuthContextType>({
 })
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null)
-  const [session, setSession] = useState<Session | null>(null)
-  const [userRole, setUserRole] = useState<UserRole | null>(null)
-  const [loading, setLoading] = useState(true)
+  const {
+    user,
+    userRole,
+    loading,
+    error,
+    updateState
+  } = useAuthState()
 
   // Use custom hooks for auth logic
-  useAuthSession({ setUser, setSession, setUserRole, setLoading })
+  useAuthSession({ updateState })
   useAuthRedirect({ user, userRole, loading })
 
   const signIn = async (email: string, password: string) => {
     try {
       console.log('Attempting sign in for:', email)
-      setLoading(true)
+      updateState({ loading: true, error: null })
       
-      const { error } = await supabase.auth.signInWithPassword({
+      const { error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
       
-      if (error) throw error
+      if (signInError) throw signInError
       
+      // Role will be fetched by useAuthSession hook
       console.log('Sign in successful for:', email)
-      toast({
-        title: "Welcome back!",
-        description: "Successfully signed in."
-      })
     } catch (error) {
       console.error('Sign in error:', error)
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to sign in. Please check your credentials."
-      })
+      updateState({ error: error as Error })
       throw error
-    } finally {
-      setLoading(false)
     }
   }
 
   const signOut = async () => {
     try {
-      console.log('Signing out user:', user?.id)
-      setLoading(true)
-      
+      updateState({ loading: true, error: null })
       const { error } = await supabase.auth.signOut()
+      
       if (error) throw error
       
-      setUser(null)
-      setSession(null)
-      setUserRole(null)
+      updateState({
+        user: null,
+        userRole: null,
+        loading: false
+      })
       
-      console.log('Sign out successful')
       toast({
         title: "Signed out",
         description: "You have been successfully signed out."
       })
     } catch (error) {
       console.error('Sign out error:', error)
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to sign out. Please try again."
-      })
+      updateState({ error: error as Error })
       throw error
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -100,7 +89,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     <AuthContext.Provider
       value={{
         user,
-        session,
+        session: null, // Handled by useAuthSession
         userRole,
         loading,
         signIn,

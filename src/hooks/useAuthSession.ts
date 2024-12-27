@@ -1,37 +1,25 @@
 import { useEffect } from 'react'
-import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/integrations/supabase/client'
-import { toast } from '@/hooks/use-toast'
-import { logError } from '@/utils/errorLogger'
-import type { Database } from '@/integrations/supabase/types'
-
-type UserRole = Database['public']['Enums']['user_role']
+import type { AuthState } from './useAuthState'
 
 type UseAuthSessionProps = {
-  setUser: (user: User | null) => void
-  setSession: (session: Session | null) => void
-  setUserRole: (role: UserRole | null) => void
-  setLoading: (loading: boolean) => void
+  updateState: (state: Partial<AuthState>) => void
 }
 
-export const useAuthSession = ({
-  setUser,
-  setSession,
-  setUserRole,
-  setLoading
-}: UseAuthSessionProps) => {
+export const useAuthSession = ({ updateState }: UseAuthSessionProps) => {
   useEffect(() => {
     console.log('Setting up auth listeners...')
     
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Initial session:', session?.user?.id)
-      setSession(session)
-      setUser(session?.user ?? null)
       if (session?.user) {
+        updateState({
+          user: session.user,
+          loading: true
+        })
         fetchUserRole(session.user.id)
       } else {
-        setLoading(false)
+        updateState({ loading: false })
       }
     })
 
@@ -44,19 +32,23 @@ export const useAuthSession = ({
         userId: session?.user?.id,
       })
       
-      setSession(session)
-      setUser(session?.user ?? null)
-      
       if (session?.user) {
+        updateState({
+          user: session.user,
+          loading: true
+        })
         await fetchUserRole(session.user.id)
       } else {
-        setUserRole(null)
-        setLoading(false)
+        updateState({
+          user: null,
+          userRole: null,
+          loading: false
+        })
       }
     })
 
     return () => subscription.unsubscribe()
-  }, [setUser, setSession, setUserRole, setLoading])
+  }, [updateState])
 
   const fetchUserRole = async (userId: string) => {
     try {
@@ -65,24 +57,20 @@ export const useAuthSession = ({
         .from('users')
         .select('role')
         .eq('id', userId)
-        .maybeSingle()
+        .single()
 
-      if (error) {
-        throw error
-      }
+      if (error) throw error
 
-      console.log('User role found:', data?.role)
-      setUserRole(data?.role ?? null)
-    } catch (error) {
-      logError(error, 'Error fetching user role', userId)
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to fetch user role. Please try again."
+      updateState({
+        userRole: data.role,
+        loading: false
       })
-      setUserRole(null)
-    } finally {
-      setLoading(false)
+    } catch (error) {
+      console.error('Error fetching user role:', error)
+      updateState({
+        error: error as Error,
+        loading: false
+      })
     }
   }
 }
