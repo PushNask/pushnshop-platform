@@ -13,6 +13,8 @@ import SellerDashboard from './pages/SellerDashboard'
 import AdminDashboard from './pages/AdminDashboard'
 import Login from './pages/auth/Login'
 import SignUp from './pages/auth/SignUp'
+import ResetPassword from './pages/auth/ResetPassword'
+import UpdatePassword from './pages/auth/UpdatePassword'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -64,6 +66,8 @@ const App = () => (
                 <Route path="/p:linkNumber/details" element={<PermanentLinkDetails />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/signup" element={<SignUp />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/update-password" element={<UpdatePassword />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </main>

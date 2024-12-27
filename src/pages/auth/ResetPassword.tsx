@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '@/contexts/AuthContext'
+import { supabase } from '@/integrations/supabase/client'
 import { useToast } from '@/hooks/use-toast'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,13 +15,12 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Link } from 'react-router-dom'
 
-const Login = () => {
+const ResetPassword = () => {
   const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState(false)
   
-  const { signIn, userRole } = useAuth()
   const { toast } = useToast()
   const navigate = useNavigate()
 
@@ -31,26 +30,24 @@ const Login = () => {
     setIsLoading(true)
 
     try {
-      await signIn(email, password)
-      toast({
-        title: 'Welcome back!',
-        description: 'You have successfully logged in.',
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/update-password`,
       })
-      
-      // Navigate based on user role
-      if (userRole === 'seller') {
-        navigate('/seller')
-      } else if (userRole === 'admin') {
-        navigate('/admin')
-      } else {
-        navigate('/')
-      }
+
+      if (error) throw error
+
+      setSuccess(true)
+      toast({
+        title: 'Reset link sent',
+        description: 'Please check your email for the password reset link.',
+      })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to sign in')
+      console.error('Reset password error:', err)
+      setError(err instanceof Error ? err.message : 'Failed to send reset link')
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Failed to sign in. Please check your credentials.',
+        description: 'Failed to send reset link. Please try again.',
       })
     } finally {
       setIsLoading(false)
@@ -68,9 +65,9 @@ const Login = () => {
               className="h-16 w-16"
             />
           </div>
-          <CardTitle className="text-center text-2xl">Welcome back</CardTitle>
+          <CardTitle className="text-center text-2xl">Reset Password</CardTitle>
           <CardDescription className="text-center">
-            Enter your credentials to access your account
+            Enter your email to receive a password reset link
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -78,6 +75,13 @@ const Login = () => {
             {error && (
               <Alert variant="destructive">
                 <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            {success && (
+              <Alert>
+                <AlertDescription>
+                  Reset link has been sent to your email address.
+                </AlertDescription>
               </Alert>
             )}
             <div className="space-y-2">
@@ -89,40 +93,23 @@ const Login = () => {
                 required
               />
             </div>
-            <div className="space-y-2">
-              <Input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-              <div className="text-sm text-right">
-                <Link
-                  to="/reset-password"
-                  className="text-primary hover:underline"
-                >
-                  Forgot password?
-                </Link>
-              </div>
-            </div>
             <Button
               type="submit"
               className="w-full"
               disabled={isLoading}
             >
-              {isLoading ? 'Signing in...' : 'Sign In'}
+              {isLoading ? 'Sending...' : 'Send Reset Link'}
             </Button>
           </form>
         </CardContent>
         <CardFooter className="flex flex-col space-y-2">
           <p className="text-sm text-muted-foreground text-center">
-            Don't have an account?{' '}
+            Remember your password?{' '}
             <Link
-              to="/signup"
+              to="/login"
               className="text-primary hover:underline"
             >
-              Sign up
+              Sign in
             </Link>
           </p>
         </CardFooter>
@@ -131,4 +118,4 @@ const Login = () => {
   )
 }
 
-export default Login
+export default ResetPassword

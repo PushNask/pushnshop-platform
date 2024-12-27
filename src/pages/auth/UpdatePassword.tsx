@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '@/contexts/AuthContext'
+import { supabase } from '@/integrations/supabase/client'
 import { useToast } from '@/hooks/use-toast'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -8,49 +8,64 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Link } from 'react-router-dom'
 
-const Login = () => {
-  const [email, setEmail] = useState('')
+const UpdatePassword = () => {
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   
-  const { signIn, userRole } = useAuth()
   const { toast } = useToast()
   const navigate = useNavigate()
+
+  useEffect(() => {
+    // Check if we're in a password reset flow
+    const hashParams = new URLSearchParams(window.location.hash.substring(1))
+    if (!hashParams.get('access_token')) {
+      navigate('/login')
+    }
+  }, [navigate])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match')
+      return
+    }
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters')
+      return
+    }
+
     setIsLoading(true)
 
     try {
-      await signIn(email, password)
+      const { error } = await supabase.auth.updateUser({
+        password: password
+      })
+
+      if (error) throw error
+
       toast({
-        title: 'Welcome back!',
-        description: 'You have successfully logged in.',
+        title: 'Password updated',
+        description: 'Your password has been successfully updated.',
       })
       
-      // Navigate based on user role
-      if (userRole === 'seller') {
-        navigate('/seller')
-      } else if (userRole === 'admin') {
-        navigate('/admin')
-      } else {
-        navigate('/')
-      }
+      navigate('/login')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to sign in')
+      console.error('Update password error:', err)
+      setError(err instanceof Error ? err.message : 'Failed to update password')
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Failed to sign in. Please check your credentials.',
+        description: 'Failed to update password. Please try again.',
       })
     } finally {
       setIsLoading(false)
@@ -68,9 +83,9 @@ const Login = () => {
               className="h-16 w-16"
             />
           </div>
-          <CardTitle className="text-center text-2xl">Welcome back</CardTitle>
+          <CardTitle className="text-center text-2xl">Update Password</CardTitle>
           <CardDescription className="text-center">
-            Enter your credentials to access your account
+            Enter your new password
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -82,53 +97,36 @@ const Login = () => {
             )}
             <div className="space-y-2">
               <Input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                type="password"
+                placeholder="New Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
+                minLength={6}
               />
             </div>
             <div className="space-y-2">
               <Input
                 type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Confirm New Password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 required
+                minLength={6}
               />
-              <div className="text-sm text-right">
-                <Link
-                  to="/reset-password"
-                  className="text-primary hover:underline"
-                >
-                  Forgot password?
-                </Link>
-              </div>
             </div>
             <Button
               type="submit"
               className="w-full"
               disabled={isLoading}
             >
-              {isLoading ? 'Signing in...' : 'Sign In'}
+              {isLoading ? 'Updating...' : 'Update Password'}
             </Button>
           </form>
         </CardContent>
-        <CardFooter className="flex flex-col space-y-2">
-          <p className="text-sm text-muted-foreground text-center">
-            Don't have an account?{' '}
-            <Link
-              to="/signup"
-              className="text-primary hover:underline"
-            >
-              Sign up
-            </Link>
-          </p>
-        </CardFooter>
       </Card>
     </div>
   )
 }
 
-export default Login
+export default UpdatePassword
