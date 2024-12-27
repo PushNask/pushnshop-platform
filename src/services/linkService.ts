@@ -1,12 +1,12 @@
 import { supabase } from '@/integrations/supabase/client'
+import type { PermanentLink } from '@/types/database/tables'
 
 export const linkService = {
-  async getActivePermanentLinks() {
+  async getActivePermanentLinks(): Promise<PermanentLink[]> {
     const { data, error } = await supabase
       .from('permanent_links')
       .select(`
-        id,
-        performance_score,
+        *,
         product:products (
           id,
           title,
@@ -25,6 +25,15 @@ export const linkService = {
       .order('performance_score', { ascending: false })
 
     if (error) throw error
-    return data
+    
+    // Transform the data to match PermanentLink type
+    return (data || []).map(link => ({
+      ...link,
+      product: {
+        ...link.product,
+        images: link.product.images || [],
+        seller: link.product.seller || { whatsapp_number: null }
+      }
+    }))
   }
 }

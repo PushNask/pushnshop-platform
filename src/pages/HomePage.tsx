@@ -5,22 +5,7 @@ import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
 import { ArrowRight, ShoppingBag, Shield, Clock } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import type { Database } from '@/integrations/supabase/types'
-
-type PermanentLink = {
-  id: number
-  product: {
-    id: string
-    title: string
-    description: string
-    price: number
-    currency: Database['public']['Enums']['currency_type']
-    images: { url: string }[]
-    seller: {
-      whatsapp_number: string | null
-    }
-  }
-}
+import type { PermanentLink } from '@/types/database/tables'
 
 const HomePage = () => {
   const { toast } = useToast()
@@ -28,8 +13,7 @@ const HomePage = () => {
   
   const { data: links, error } = useQuery<PermanentLink[]>({
     queryKey: ['active-permanent-links'],
-    queryFn: linkService.getActivePermanentLinks,
-    refetchInterval: 30000, // Refresh every 30 seconds
+    queryFn: linkService.getActivePermanentLinks
   })
 
   if (error) {
