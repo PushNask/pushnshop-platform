@@ -25,6 +25,12 @@ const LoginForm = () => {
       // Get the redirect path from location state or default based on role
       const from = location.state?.from?.pathname || getDashboardPath(userRole)
       console.log('Redirecting to:', from)
+      
+      toast({
+        title: "Success",
+        description: "You have successfully signed in.",
+      })
+      
       navigate(from, { replace: true })
     } catch (err) {
       console.error('Login error:', err)
