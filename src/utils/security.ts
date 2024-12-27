@@ -4,7 +4,7 @@ export const generateCsrfToken = async () => {
   const { data: { session } } = await supabase.auth.getSession()
   if (!session?.user) return null
 
-  const { data: tokenData, error } = await supabase
+  const { data, error } = await supabase
     .rpc('generate_csrf_token', {
       p_user_id: session.user.id
     })
@@ -14,14 +14,14 @@ export const generateCsrfToken = async () => {
     return null
   }
 
-  return tokenData.token
+  return data.token
 }
 
 export const validateCsrfToken = async (token: string) => {
   const { data: { session } } = await supabase.auth.getSession()
   if (!session?.user) return false
 
-  const { data: isValid, error } = await supabase
+  const { data, error } = await supabase
     .rpc('validate_csrf_token', {
       p_token: token,
       p_user_id: session.user.id
@@ -32,7 +32,7 @@ export const validateCsrfToken = async (token: string) => {
     return false
   }
 
-  return isValid
+  return data
 }
 
 export const checkRateLimit = async (email: string) => {

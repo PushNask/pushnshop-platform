@@ -270,9 +270,6 @@ export type Database = {
         Relationships: []
       }
     }
-    Views: {
-      [_ in never]: never
-    }
     Functions: {
       check_login_attempts: {
         Args: {
@@ -282,15 +279,18 @@ export type Database = {
         }
         Returns: boolean
       }
-      cleanup_expired_csrf_tokens: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      cleanup_expired_sessions: {
+      generate_csrf_token: {
         Args: {
-          p_max_inactive_hours?: number
+          p_user_id: string
         }
-        Returns: undefined
+        Returns: { token: string }
+      }
+      validate_csrf_token: {
+        Args: {
+          p_token: string
+          p_user_id: string
+        }
+        Returns: boolean
       }
       get_admin_dashboard_metrics: {
         Args: {
@@ -333,19 +333,6 @@ export type Database = {
           p_default_duration_hours?: number
         }
         Returns: Json
-      }
-      generate_csrf_token: {
-        Args: {
-          p_user_id: string
-        }
-        Returns: { token: string }
-      }
-      validate_csrf_token: {
-        Args: {
-          p_token: string
-          p_user_id: string
-        }
-        Returns: boolean
       }
     }
     Enums: {

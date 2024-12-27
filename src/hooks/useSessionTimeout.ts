@@ -2,7 +2,6 @@ import { useEffect } from 'react'
 import { useAuth } from '@/contexts/auth/AuthProvider'
 import { useToast } from '@/hooks/use-toast'
 
-const SESSION_TIMEOUT = 24 * 60 * 60 * 1000 // 24 hours in milliseconds
 const WARNING_TIME = 5 * 60 * 1000 // 5 minutes before timeout
 
 export const useSessionTimeout = () => {
@@ -10,9 +9,9 @@ export const useSessionTimeout = () => {
   const { toast } = useToast()
 
   useEffect(() => {
-    if (!session) return
+    if (!session?.expires_at) return
 
-    // Use session.expires_at instead of created_at
+    // Convert expires_at to milliseconds timestamp
     const timeoutAt = new Date(session.expires_at).getTime()
     const warningAt = timeoutAt - WARNING_TIME
 
