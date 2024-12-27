@@ -9,6 +9,27 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      csrf_tokens: {
+        Row: {
+          token: string
+          user_id: string
+          created_at: string
+          expires_at: string
+        }
+        Insert: {
+          token: string
+          user_id: string
+          created_at?: string
+          expires_at?: string
+        }
+        Update: {
+          token?: string
+          user_id?: string
+          created_at?: string
+          expires_at?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount: number
@@ -253,6 +274,24 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_login_attempts: {
+        Args: {
+          p_email: string
+          p_window_minutes?: number
+          p_max_attempts?: number
+        }
+        Returns: boolean
+      }
+      cleanup_expired_csrf_tokens: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      cleanup_expired_sessions: {
+        Args: {
+          p_max_inactive_hours?: number
+        }
+        Returns: undefined
+      }
       get_admin_dashboard_metrics: {
         Args: {
           time_range: string
@@ -295,6 +334,19 @@ export type Database = {
         }
         Returns: Json
       }
+      generate_csrf_token: {
+        Args: {
+          p_user_id: string
+        }
+        Returns: { token: string }
+      }
+      validate_csrf_token: {
+        Args: {
+          p_token: string
+          p_user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       currency_type: "XAF" | "USD"
@@ -317,7 +369,7 @@ export type Tables<
   TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
     ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
         Database[PublicTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never,
 > = PublicTableNameOrOptions extends { schema: keyof Database }
   ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
       Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
@@ -329,10 +381,10 @@ export type Tables<
         PublicSchema["Views"])
     ? (PublicSchema["Tables"] &
         PublicSchema["Views"])[PublicTableNameOrOptions] extends {
-        Row: infer R
-      }
-      ? R
-      : never
+      Row: infer R
+    }
+    ? R
+    : never
     : never
 
 export type TablesInsert<
@@ -371,10 +423,10 @@ export type TablesUpdate<
     : never
   : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
     ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
-        Update: infer U
-      }
-      ? U
-      : never
+      Update: infer U
+    }
+    ? U
+    : never
     : never
 
 export type Enums<

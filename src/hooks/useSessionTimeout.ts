@@ -12,8 +12,8 @@ export const useSessionTimeout = () => {
   useEffect(() => {
     if (!session) return
 
-    const lastActivity = new Date(session.created_at).getTime()
-    const timeoutAt = lastActivity + SESSION_TIMEOUT
+    // Use session.expires_at instead of created_at
+    const timeoutAt = new Date(session.expires_at).getTime()
     const warningAt = timeoutAt - WARNING_TIME
 
     // Show warning before session expires
