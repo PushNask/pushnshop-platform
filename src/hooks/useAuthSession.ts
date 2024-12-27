@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/integrations/supabase/client'
-import { useToast } from '@/hooks/use-toast'
+import { logError } from '@/utils/errorLogger'
 import type { Database } from '@/integrations/supabase/types'
 
 type UserRole = Database['public']['Enums']['user_role']
@@ -13,20 +13,18 @@ type UseAuthSessionProps = {
   setLoading: (loading: boolean) => void
 }
 
-export const useAuthSession = ({ 
-  setUser, 
-  setSession, 
-  setUserRole, 
-  setLoading 
+export const useAuthSession = ({
+  setUser,
+  setSession,
+  setUserRole,
+  setLoading
 }: UseAuthSessionProps) => {
-  const { toast } = useToast()
-
   useEffect(() => {
     console.log('Setting up auth listeners...')
     
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Initial session:', session)
+      console.log('Initial session:', session?.user?.id)
       setSession(session)
       setUser(session?.user ?? null)
       if (session?.user) {
@@ -40,9 +38,14 @@ export const useAuthSession = ({
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      console.log('Auth state changed:', _event, session)
+      console.log('Auth state changed:', {
+        event: _event,
+        userId: session?.user?.id,
+      })
+      
       setSession(session)
       setUser(session?.user ?? null)
+      
       if (session?.user) {
         await fetchUserRole(session.user.id)
       } else {
@@ -65,17 +68,11 @@ export const useAuthSession = ({
 
       if (error) throw error
 
-      if (data) {
-        console.log('User role found:', data.role)
-        setUserRole(data.role)
-      }
+      console.log('User role found:', data?.role)
+      setUserRole(data?.role ?? null)
     } catch (error) {
-      console.error('Error in fetchUserRole:', error)
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Failed to fetch user role. Please try again.'
-      })
+      logError(error, 'FetchUserRole', userId)
+      setUserRole(null)
     } finally {
       setLoading(false)
     }
