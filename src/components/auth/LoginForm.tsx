@@ -54,9 +54,19 @@ const LoginForm = () => {
         default:
           navigate('/', { replace: true })
       }
-    } catch (err) {
+    } catch (err: any) {
       logError(err, 'Login error')
       setIsLoading(false)
+      
+      // Handle email confirmation error specifically
+      if (err.message?.includes('email_not_confirmed') || err?.error?.message?.includes('Email not confirmed')) {
+        toast({
+          variant: 'destructive',
+          title: 'Email Not Confirmed',
+          description: "Please check your email and confirm your account before signing in. Check your spam folder if you can't find the confirmation email.",
+        })
+        return
+      }
       
       toast({
         variant: 'destructive',
