@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client'
 import ProductCard from '@/components/products/ProductCard'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2 } from 'lucide-react'
+import type { Product } from '@/types/products'
 
 const ProductListing = () => {
   const { user } = useAuth()
@@ -43,7 +44,16 @@ const ProductListing = () => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {products?.map(product => (
-        <ProductCard key={product.id} product={product} />
+        <ProductCard
+          key={product.id}
+          id={product.id}
+          title={product.title}
+          description={product.description}
+          price={Number(product.price)}
+          currency={product.currency}
+          linkId={0}
+          showActions={true}
+        />
       ))}
     </div>
   )
