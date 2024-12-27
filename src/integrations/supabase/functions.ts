@@ -6,7 +6,7 @@ export const generateCsrfTokenRpc = async (userId: string) => {
   })
   
   if (error) throw error
-  return data
+  return data as { token: string }
 }
 
 export const validateCsrfTokenRpc = async (token: string, userId: string) => {
