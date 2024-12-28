@@ -57,9 +57,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
       // Perform Supabase signout
       const { error: signOutError } = await supabase.auth.signOut();
       if (signOutError) throw signOutError;
-
-      // Clear any cached auth data
-      await supabase.auth.clearSession();
       
       // Update state after successful signout
       updateState({
