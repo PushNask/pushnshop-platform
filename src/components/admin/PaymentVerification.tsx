@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/table'
 import type { Payment } from '@/types/admin'
 
-export const PaymentVerification = () => {
+const PaymentVerification = () => {
   const { toast } = useToast()
 
   const { data: payments, refetch } = useQuery({
@@ -103,3 +103,5 @@ export const PaymentVerification = () => {
     </div>
   )
 }
+
+export default PaymentVerification;
