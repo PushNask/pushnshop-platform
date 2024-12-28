@@ -3,56 +3,15 @@ import { useForm } from 'react-hook-form'
 import { useToast } from '@/hooks/use-toast'
 import { supabase } from '@/integrations/supabase/client'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
+import { Form } from '@/components/ui/form'
 import { useAuth } from '@/contexts/auth/AuthProvider'
 import { Upload } from 'lucide-react'
-import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
-const MAX_IMAGES = 7;
-
-const productSchema = z.object({
-  title: z.string()
-    .min(3, 'Title must be at least 3 characters')
-    .max(100, 'Title must be less than 100 characters'),
-  description: z.string()
-    .min(10, 'Description must be at least 10 characters')
-    .max(1000, 'Description must be less than 1000 characters')
-    .transform(val => val.replace(/<[^>]*>/g, '')), // Strip HTML
-  price: z.number()
-    .min(1000, 'Minimum price is 1000 XAF')
-    .max(1000000, 'Maximum price is 1000000 XAF'),
-  duration: z.number()
-    .min(24, 'Duration must be between 24 and 720 hours')
-    .max(720, 'Duration must be between 24 and 720 hours'),
-  images: z.instanceof(FileList)
-    .refine(files => files.length <= MAX_IMAGES, `Maximum ${MAX_IMAGES} images allowed`)
-    .refine(files => {
-      for (let i = 0; i < files.length; i++) {
-        if (files[i].size > MAX_FILE_SIZE) return false;
-      }
-      return true;
-    }, 'Each image must be less than 5MB')
-    .refine(files => {
-      for (let i = 0; i < files.length; i++) {
-        if (!ALLOWED_FILE_TYPES.includes(files[i].type)) return false;
-      }
-      return true;
-    }, 'Only JPG, PNG and WebP images are allowed')
-});
-
-type ProductFormData = z.infer<typeof productSchema>;
+import { ProductBasicInfo } from './product-creation/ProductBasicInfo'
+import { ProductPricing } from './product-creation/ProductPricing'
+import { ProductImageUpload } from './product-creation/ProductImageUpload'
+import { productSchema } from './product-creation/types'
+import type { ProductFormData } from './product-creation/types'
 
 const CreateProduct = () => {
   const { user } = useAuth()
@@ -89,7 +48,7 @@ const CreateProduct = () => {
       if (productError) throw productError
 
       // Upload images
-      const files = Array.from(data.images).slice(0, MAX_IMAGES)
+      const files = Array.from(data.images).slice(0, 7)
       const imagePromises = files.map(async (file) => {
         const fileExt = file.name.split('.').pop()
         const fileName = `${crypto.randomUUID()}.${fileExt}`
@@ -137,89 +96,9 @@ const CreateProduct = () => {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="title"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Title</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description</FormLabel>
-              <FormControl>
-                <Textarea {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="price"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Price (XAF)</FormLabel>
-              <FormControl>
-                <Input 
-                  type="number" 
-                  {...field} 
-                  onChange={e => field.onChange(Number(e.target.value))}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="duration"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Duration (hours)</FormLabel>
-              <FormControl>
-                <Input 
-                  type="number" 
-                  {...field}
-                  onChange={e => field.onChange(Number(e.target.value))}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="images"
-          render={({ field: { onChange } }) => (
-            <FormItem>
-              <FormLabel>Images (up to 7)</FormLabel>
-              <FormControl>
-                <Input
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={e => onChange(e.target.files)}
-                  className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <ProductBasicInfo form={form} />
+        <ProductPricing form={form} />
+        <ProductImageUpload form={form} />
 
         <Button type="submit" disabled={uploading}>
           {uploading ? (
