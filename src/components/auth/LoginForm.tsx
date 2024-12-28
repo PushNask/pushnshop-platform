@@ -80,22 +80,34 @@ const LoginForm: React.FC = () => {
     } catch (err) {
       logError(err, 'Login error');
 
-      if (err instanceof Error && 
-          err.message.toLowerCase().includes('email_not_confirmed')) {
-        toast({
-          variant: 'destructive',
-          title: 'Email Not Confirmed',
-          description: 'Please check your email and confirm your account. Check your spam folder if needed.'
-        });
-        return;
+      // Handle specific error cases
+      if (err instanceof Error) {
+        const errorMessage = err.message.toLowerCase();
+        
+        if (errorMessage.includes('invalid_credentials') || errorMessage.includes('invalid login credentials')) {
+          toast({
+            variant: 'destructive',
+            title: 'Invalid Credentials',
+            description: 'The email or password you entered is incorrect.'
+          });
+          return;
+        }
+
+        if (errorMessage.includes('email_not_confirmed')) {
+          toast({
+            variant: 'destructive',
+            title: 'Email Not Confirmed',
+            description: 'Please check your email and confirm your account. Check your spam folder if needed.'
+          });
+          return;
+        }
       }
 
+      // Generic error message for other cases
       toast({
         variant: 'destructive',
         title: 'Sign In Failed',
-        description: err instanceof Error
-          ? err.message
-          : 'Failed to sign in. Please check your credentials.'
+        description: 'An error occurred while signing in. Please try again.'
       });
     }
   }, [formData, signIn, loading, validateForm]);
