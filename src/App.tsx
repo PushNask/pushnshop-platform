@@ -1,23 +1,23 @@
-import { lazy, Suspense } from 'react';
-import { Toaster as NotificationToaster } from '@/components/ui/toaster';
-import { TooltipProvider } from '@/components/ui/tooltip';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from '@/contexts/auth/AuthProvider';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import Header from './components/shared/Header';
-import Footer from './components/shared/Footer';
-import HomePage from './pages/HomePage';
-import Login from './pages/auth/Login';
-import SignUp from './pages/auth/SignUp';
-import ResetPassword from './pages/auth/ResetPassword';
-import UpdatePassword from './pages/auth/UpdatePassword';
+import { lazy, Suspense } from 'react'
+import { Toaster as NotificationToaster } from '@/components/ui/toaster'
+import { TooltipProvider } from '@/components/ui/tooltip'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { AuthProvider } from '@/contexts/auth/AuthProvider'
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import Header from './components/shared/Header'
+import Footer from './components/shared/Footer'
+import HomePage from './pages/HomePage'
+import Login from './pages/auth/Login'
+import SignUp from './pages/auth/SignUp'
+import ResetPassword from './pages/auth/ResetPassword'
+import UpdatePassword from './pages/auth/UpdatePassword'
 
-const SellerDashboard = lazy(() => import('./pages/SellerDashboard'));
-const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
-const ProductDetails = lazy(() => import('./pages/ProductDetails'));
-const PermanentLinkDetails = lazy(() => import('./pages/PermanentLinkDetails'));
-const NotFound = lazy(() => import('./pages/NotFound'));
+const SellerDashboard = lazy(() => import('./pages/SellerDashboard'))
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
+const ProductDetails = lazy(() => import('./pages/ProductDetails'))
+const PermanentLinkDetails = lazy(() => import('./pages/PermanentLinkDetails'))
+const NotFound = lazy(() => import('./pages/NotFound'))
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,12 +28,14 @@ const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
       refetchOnMount: true,
       refetchOnReconnect: true,
-      onError: (error) => {
-        console.error('Query error:', error);
-      },
-    },
-  },
-});
+      meta: {
+        onError: (error: Error) => {
+          console.error('Query error:', error)
+        }
+      }
+    }
+  }
+})
 
 const App = () => {
   return (
@@ -84,3 +86,4 @@ const App = () => {
 };
 
 export default App;
+

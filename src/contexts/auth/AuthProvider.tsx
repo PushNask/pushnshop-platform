@@ -40,8 +40,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   /**
    * Fetches the user role from the 'users' table based on user ID.
-   * @param userId - The ID of the user.
-   * @returns The role of the user or null if an error occurs.
    */
   const fetchUserRole = useCallback(async (userId: string): Promise<UserRole | null> => {
     try {
@@ -69,8 +67,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   /**
    * Handles authentication state changes.
-   * @param event - The authentication event.
-   * @param sessionData - The current session data.
    */
   const handleAuthChange = useCallback(
     async (event: AuthChangeEvent, sessionData: Session | null) => {
@@ -104,7 +100,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     initializeAuth()
 
     // Subscribe to auth state changes
-    const { subscription } = supabase.auth.onAuthStateChange(handleAuthChange)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(handleAuthChange)
 
     // Cleanup subscription on unmount
     return () => {
@@ -114,8 +110,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   /**
    * Signs in the user with email and password.
-   * @param email - The user's email.
-   * @param password - The user's password.
    */
   const signIn = useCallback(async (email: string, password: string) => {
     try {
@@ -136,7 +130,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         title: 'Welcome back!',
         description: 'You have successfully signed in.',
       })
-      // The session and user state will be updated by the auth state change listener
     } catch (err) {
       console.error('Sign in error:', err)
       toast({
@@ -168,7 +161,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         title: 'Signed out',
         description: 'You have been successfully signed out.',
       })
-      // The session and user state will be updated by the auth state change listener
     } catch (err) {
       console.error('Sign out error:', err)
       toast({
@@ -200,7 +192,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
 /**
  * Custom hook to access the authentication context.
- * @returns The authentication context.
  */
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext)
