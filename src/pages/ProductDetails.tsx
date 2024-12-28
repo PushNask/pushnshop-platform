@@ -7,8 +7,8 @@ import { Calendar, DollarSign, Eye, Info, Link } from 'lucide-react';
 import ShareProduct from '@/components/products/ShareProduct';
 import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
-import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
+import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import { withErrorBoundary } from '@/components/shared/ErrorBoundary';
 
 type BaseProduct = {
   id: string;
@@ -108,7 +108,7 @@ const ProductDetailsCard: React.FC<ProductDetailsProps> = ({
   );
 };
 
-export const ProductDetails = () => {
+export const ProductDetails = withErrorBoundary(() => {
   const { id } = useParams();
 
   const { data: product, isLoading } = useQuery({
@@ -144,15 +144,13 @@ export const ProductDetails = () => {
   }
 
   return (
-    <ErrorBoundary>
-      <div className="container mx-auto p-4">
-        <ProductDetailsCard product={product} />
-      </div>
-    </ErrorBoundary>
+    <div className="container mx-auto p-4">
+      <ProductDetailsCard product={product} />
+    </div>
   );
-};
+});
 
-export const PermanentLinkDetails = () => {
+export const PermanentLinkDetails = withErrorBoundary(() => {
   const { linkNumber } = useParams();
 
   const { data: linkData, isLoading } = useQuery({
@@ -191,14 +189,12 @@ export const PermanentLinkDetails = () => {
   }
 
   return (
-    <ErrorBoundary>
-      <div className="container mx-auto p-4">
-        <ProductDetailsCard 
-          product={linkData.product}
-          linkId={linkNumber}
-          linkScore={linkData.performance_score}
-        />
-      </div>
-    </ErrorBoundary>
+    <div className="container mx-auto p-4">
+      <ProductDetailsCard 
+        product={linkData.product}
+        linkId={linkNumber}
+        linkScore={linkData.performance_score}
+      />
+    </div>
   );
-};
+});

@@ -1,9 +1,9 @@
 import React, { lazy, Suspense, useCallback } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
+import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 import { Toaster as NotificationToaster } from '@/components/ui/toaster';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from '@/contexts/auth/AuthProvider';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import Header from '@/components/shared/Header';
@@ -11,7 +11,6 @@ import Footer from '@/components/shared/Footer';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { useToast } from '@/hooks/use-toast';
 
-// Eagerly load HomePage for better initial load performance
 import HomePage from '@/pages/HomePage';
 
 // Lazy load other pages with chunk naming
@@ -53,8 +52,6 @@ const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
       refetchOnMount: true,
       refetchOnReconnect: true,
-      suspense: false,
-      useErrorBoundary: true,
       meta: {
         onError: (error: Error) => {
           console.error('Query error:', error);
@@ -62,13 +59,11 @@ const queryClient = new QueryClient({
       }
     },
     mutations: {
-      retry: 1,
-      useErrorBoundary: true
+      retry: 1
     }
   }
 });
 
-// Error Fallback component
 const ErrorFallback = ({ error, resetErrorBoundary }) => {
   const { toast } = useToast();
 

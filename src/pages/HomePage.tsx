@@ -7,7 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ArrowRight, ShoppingBag, Shield, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
+import { withErrorBoundary } from '@/components/shared/ErrorBoundary';
 
 const FEATURED_PRODUCTS_COUNT = 12;
 
@@ -134,4 +134,5 @@ const HomePage = () => {
   );
 };
 
-export default HomePage;
+// Wrap the component with error boundary
+export default withErrorBoundary(HomePage);
