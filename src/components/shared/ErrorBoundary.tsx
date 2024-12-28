@@ -1,3 +1,5 @@
+// components/shared/ErrorBoundary.tsx
+
 import React from 'react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -26,12 +28,12 @@ class ErrorBoundary extends React.Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('ErrorBoundary caught an error:', error, errorInfo)
-    // Here you could send to an error reporting service like Sentry
+    // Optionally log the error to an external service here
   }
 
   handleRetry = () => {
     this.setState({ hasError: false, error: null })
-    window.location.reload()
+    // Optionally implement a more granular retry logic here
   }
 
   render() {
@@ -41,8 +43,9 @@ class ErrorBoundary extends React.Component<Props, State> {
       }
 
       const errorMessage = this.state.error?.message || 'An unexpected error occurred'
-      const isNetworkError = errorMessage.toLowerCase().includes('network') || 
-                            errorMessage.toLowerCase().includes('fetch')
+      const isNetworkError =
+        errorMessage.toLowerCase().includes('network') ||
+        errorMessage.toLowerCase().includes('fetch')
 
       return (
         <div className="p-4 space-y-4">
@@ -50,12 +53,12 @@ class ErrorBoundary extends React.Component<Props, State> {
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Something went wrong</AlertTitle>
             <AlertDescription>
-              {isNetworkError 
+              {isNetworkError
                 ? 'Unable to connect to the server. Please check your internet connection.'
                 : errorMessage}
             </AlertDescription>
           </Alert>
-          <Button onClick={this.handleRetry} className="w-full">
+          <Button onClick={this.handleRetry} className="w-full flex items-center justify-center">
             <RefreshCw className="mr-2 h-4 w-4" />
             Try Again
           </Button>
