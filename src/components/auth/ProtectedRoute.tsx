@@ -4,7 +4,7 @@ import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/auth/AuthProvider';
 import { toast } from '@/hooks/use-toast';
 import type { Database } from '@/integrations/supabase/types';
-import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
+import LoadingSpinner from '@/components/shared/LoadingSpinner';
 
 type UserRole = Database['public']['Enums']['user_role'];
 
@@ -54,7 +54,6 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   if (!user) {
-    // Store the attempted URL for redirect after login
     return (
       <Navigate 
         to={redirectTo} 
@@ -68,7 +67,6 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/" replace />;
   }
 
-  // Render children only when authentication and authorization are confirmed
   return <>{children}</>;
 };
 
