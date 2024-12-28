@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/integrations/supabase/client'
 import { useToast } from '@/hooks/use-toast'
@@ -13,24 +13,24 @@ import {
 } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 
-const UpdatePassword = () => {
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
-  
+const UpdatePassword: React.FC = () => {
+  const [password, setPassword] = useState<string>('')
+  const [confirmPassword, setConfirmPassword] = useState<string>('')
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [error, setError] = useState<string>('')
+
   const { toast } = useToast()
   const navigate = useNavigate()
 
   useEffect(() => {
-    // Check if we're in a password reset flow
+    // Check if we're in a password reset flow by verifying the presence of 'access_token'
     const hashParams = new URLSearchParams(window.location.hash.substring(1))
     if (!hashParams.get('access_token')) {
       navigate('/login')
     }
   }, [navigate])
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError('')
 
@@ -48,7 +48,7 @@ const UpdatePassword = () => {
 
     try {
       const { error } = await supabase.auth.updateUser({
-        password: password
+        password: password,
       })
 
       if (error) throw error
@@ -57,7 +57,7 @@ const UpdatePassword = () => {
         title: 'Password updated',
         description: 'Your password has been successfully updated.',
       })
-      
+
       navigate('/login')
     } catch (err) {
       console.error('Update password error:', err)
@@ -96,29 +96,40 @@ const UpdatePassword = () => {
               </Alert>
             )}
             <div className="space-y-2">
+              <label htmlFor="password" className="sr-only">
+                New Password
+              </label>
               <Input
+                id="password"
                 type="password"
                 placeholder="New Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
+                aria-label="New Password"
               />
             </div>
             <div className="space-y-2">
+              <label htmlFor="confirmPassword" className="sr-only">
+                Confirm New Password
+              </label>
               <Input
+                id="confirmPassword"
                 type="password"
                 placeholder="Confirm New Password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 minLength={6}
+                aria-label="Confirm New Password"
               />
             </div>
             <Button
               type="submit"
               className="w-full"
               disabled={isLoading}
+              aria-disabled={isLoading}
             >
               {isLoading ? 'Updating...' : 'Update Password'}
             </Button>
