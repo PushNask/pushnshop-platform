@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/integrations/supabase/client'
 import { useToast } from '@/hooks/use-toast'
@@ -17,18 +17,18 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Link } from 'react-router-dom'
 import { validateWhatsAppNumber } from '@/utils/validation'
 
-const SignUp = () => {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [fullName, setFullName] = useState('')
-  const [whatsappNumber, setWhatsappNumber] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
-  
+const SignUp: React.FC = () => {
+  const [email, setEmail] = useState<string>('')
+  const [password, setPassword] = useState<string>('')
+  const [fullName, setFullName] = useState<string>('')
+  const [whatsappNumber, setWhatsappNumber] = useState<string>('')
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [error, setError] = useState<string>('')
+
   const { toast } = useToast()
   const navigate = useNavigate()
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError('')
     setIsLoading(true)
@@ -47,9 +47,10 @@ const SignUp = () => {
           data: {
             full_name: fullName,
             whatsapp_number: whatsappNumber,
-            role: 'seller' // Default role for new signups
-          }
-        }
+            role: 'seller', // Default role for new signups
+          },
+          emailRedirectTo: `${window.location.origin}/update-password`,
+        },
       })
 
       if (signUpError) throw signUpError
@@ -98,41 +99,58 @@ const SignUp = () => {
               </Alert>
             )}
             <div className="space-y-2">
+              <label htmlFor="fullName" className="sr-only">
+                Full Name
+              </label>
               <Input
+                id="fullName"
                 placeholder="Full Name"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 required
+                aria-label="Full Name"
               />
             </div>
             <div className="space-y-2">
+              <label htmlFor="email" className="sr-only">
+                Email
+              </label>
               <Input
+                id="email"
                 type="email"
                 placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                aria-label="Email"
               />
             </div>
             <WhatsAppInput
               value={whatsappNumber}
               onChange={setWhatsappNumber}
               required
+              aria-label="WhatsApp Number"
             />
             <div className="space-y-2">
+              <label htmlFor="password" className="sr-only">
+                Password
+              </label>
               <Input
+                id="password"
                 type="password"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
+                aria-label="Password"
               />
             </div>
             <Button
               type="submit"
               className="w-full"
               disabled={isLoading}
+              aria-disabled={isLoading}
             >
               {isLoading ? 'Creating account...' : 'Sign Up'}
             </Button>
