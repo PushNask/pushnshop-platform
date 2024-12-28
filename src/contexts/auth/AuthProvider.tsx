@@ -25,14 +25,7 @@ interface AuthContextType {
 }
 
 // Create the AuthContext with default values
-const AuthContext = createContext<AuthContextType>({
-  user: null,
-  session: null,
-  userRole: null,
-  loading: true,
-  signIn: async () => {},
-  signOut: async () => {},
-})
+const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 interface AuthProviderProps {
   children: React.ReactNode
@@ -44,7 +37,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null)
   const [userRole, setUserRole] = useState<UserRole | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
-  const [error, setError] = useState<Error | null>(null)
 
   /**
    * Fetches the user role from the 'users' table based on user ID.
@@ -129,7 +121,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       console.log('Attempting sign in for:', email)
       setLoading(true)
-      setError(null)
 
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email,
@@ -148,11 +139,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // The session and user state will be updated by the auth state change listener
     } catch (err) {
       console.error('Sign in error:', err)
-      setError(err as Error)
       toast({
         variant: 'destructive',
         title: 'Sign in failed',
-        description: (err as Error).message,
+        description: err instanceof Error ? err.message : 'Failed to sign in',
       })
       throw err
     } finally {
@@ -166,7 +156,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signOut = useCallback(async () => {
     try {
       setLoading(true)
-      setError(null)
 
       const { error } = await supabase.auth.signOut()
 
@@ -182,11 +171,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // The session and user state will be updated by the auth state change listener
     } catch (err) {
       console.error('Sign out error:', err)
-      setError(err as Error)
       toast({
         variant: 'destructive',
         title: 'Sign out failed',
-        description: (err as Error).message,
+        description: err instanceof Error ? err.message : 'Failed to sign out',
       })
       throw err
     } finally {
