@@ -1,9 +1,7 @@
-import { createContext, useContext } from 'react'
+import { createContext, useContext, useEffect } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/integrations/supabase/client'
 import { useAuthState } from '@/hooks/useAuthState'
-import { useAuthSession } from '@/hooks/useAuthSession'
-import { useAuthRedirect } from '@/hooks/useAuthRedirect'
 import { toast } from '@/hooks/use-toast'
 import type { Database } from '@/integrations/supabase/types'
 
@@ -36,8 +34,51 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     updateState
   } = useAuthState()
 
-  useAuthSession({ updateState })
-  useAuthRedirect({ user, userRole, loading })
+  useEffect(() => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', { event, userId: session?.user?.id })
+      
+      if (session?.user) {
+        updateState({
+          user: session.user,
+          loading: true
+        })
+        
+        // Fetch user role
+        const { data, error: roleError } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', session.user.id)
+          .single()
+        
+        if (roleError) {
+          console.error('Error fetching user role:', roleError)
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Failed to fetch user role. Please try again.",
+          })
+          updateState({ loading: false })
+          return
+        }
+
+        updateState({
+          userRole: data.role,
+          loading: false
+        })
+      } else {
+        updateState({
+          user: null,
+          userRole: null,
+          loading: false
+        })
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [updateState])
 
   const signIn = async (email: string, password: string) => {
     try {
