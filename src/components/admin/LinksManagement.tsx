@@ -9,7 +9,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 
-export const LinksManagement = () => {
+const LinksManagement = () => {
   const { data: links } = useQuery({
     queryKey: ['permanentLinks'],
     queryFn: async () => {
@@ -73,3 +73,5 @@ export const LinksManagement = () => {
     </div>
   )
 }
+
+export default LinksManagement;

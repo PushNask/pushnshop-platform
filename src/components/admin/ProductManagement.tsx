@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/table'
 import type { Product } from '@/types/products'
 
-export const ProductManagement = () => {
+const ProductManagement = () => {
   const { toast } = useToast()
 
   const { data: products, refetch } = useQuery({
@@ -95,3 +95,5 @@ export const ProductManagement = () => {
     </div>
   )
 }
+
+export default ProductManagement;
