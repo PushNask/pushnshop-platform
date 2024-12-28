@@ -10,7 +10,7 @@ import { toast } from '@/hooks/use-toast'
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const { signIn, user } = useAuth()
+  const { signIn, user, loading } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const emailInputRef = useRef<HTMLInputElement>(null)
@@ -62,8 +62,6 @@ const LoginForm: React.FC = () => {
         return
       }
 
-      // Clear any existing errors and show loading state
-      setIsLoading(true)
       console.log('Login attempt:', { email })
 
       try {
@@ -96,24 +94,13 @@ const LoginForm: React.FC = () => {
               ? err.message
               : 'Failed to sign in. Please check your credentials.',
         })
-      } finally {
-        setIsLoading(false)
       }
     },
     [email, password, signIn, loading]
   )
 
-  // Local loading state synchronized with context loading
-  const { loading } = useAuth()
-  const [isLoading, setIsLoading] = useState(false)
-
-  // Synchronize local isLoading with context loading
-  useEffect(() => {
-    setIsLoading(loading)
-  }, [loading])
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 animate-fade-up" aria-busy={isLoading}>
+    <form onSubmit={handleSubmit} className="space-y-4 animate-fade-up" aria-busy={loading}>
       <div className="space-y-2">
         <label htmlFor="email" className="sr-only">
           Email
@@ -125,7 +112,7 @@ const LoginForm: React.FC = () => {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          disabled={isLoading}
+          disabled={loading}
           className="bg-background"
           autoComplete="email"
           ref={emailInputRef}
@@ -142,7 +129,7 @@ const LoginForm: React.FC = () => {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          disabled={isLoading}
+          disabled={loading}
           className="bg-background"
           autoComplete="current-password"
         />
@@ -150,10 +137,10 @@ const LoginForm: React.FC = () => {
       <Button
         type="submit"
         className="w-full flex items-center justify-center"
-        disabled={isLoading}
-        aria-disabled={isLoading}
+        disabled={loading}
+        aria-disabled={loading}
       >
-        {isLoading ? (
+        {loading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
             Signing in...
