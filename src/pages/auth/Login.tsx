@@ -1,5 +1,5 @@
-import { useEffect } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import React, { useEffect } from 'react'
+import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/auth/AuthProvider'
 import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/card'
 import LoginHeader from '@/components/auth/LoginHeader'
@@ -13,19 +13,19 @@ const Login = () => {
 
   useEffect(() => {
     if (!loading && user && userRole) {
-      const from = location.state?.from?.pathname || getDashboardPath(userRole)
+      const from = (location.state as { from?: { pathname: string } })?.from?.pathname || getDashboardPath(userRole)
       navigate(from, { replace: true })
     }
   }, [user, userRole, loading, navigate, location])
 
-  const getDashboardPath = (role: string) => {
+  const getDashboardPath = (role: string): string => {
     switch (role) {
       case 'admin':
         return '/admin'
       case 'seller':
         return '/seller'
       default:
-        return '/'
+        return '/dashboard'
     }
   }
 
@@ -38,7 +38,8 @@ const Login = () => {
   }
 
   if (user && userRole) {
-    return null // Will be redirected by useEffect
+    // Prevent rendering the login form if already authenticated
+    return null
   }
 
   return (
