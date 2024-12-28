@@ -1,29 +1,61 @@
-// pages/AdminDashboard.tsx
+import React, { Suspense } from 'react';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import ErrorBoundary, { withErrorBoundary } from '@/components/shared/ErrorBoundary';
+import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import { lazyWithPreload } from '@/utils/lazyWithPreload';
 
-import React, { Suspense } from 'react'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
-import ErrorBoundary, { withErrorBoundary } from '@/components/shared/ErrorBoundary'
-import LoadingSpinner from '@/components/shared/LoadingSpinner'
-import { lazyWithPreload } from '@/utils/lazyWithPreload'
+// Define tab configuration type
+type TabConfig = {
+  id: string;
+  label: string;
+  component: ReturnType<typeof lazyWithPreload>;
+};
 
 // Lazy-loaded admin components with preload capability
-const Analytics = lazyWithPreload(() => import('@/components/admin/Analytics'))
-const UserManagement = lazyWithPreload(() => import('@/components/admin/UserManagement'))
-const PaymentVerification = lazyWithPreload(() => import('@/components/admin/PaymentVerification'))
-const ProductManagement = lazyWithPreload(() => import('@/components/admin/ProductManagement'))
-const LinksManagement = lazyWithPreload(() => import('@/components/admin/LinksManagement'))
-const SystemSettings = lazyWithPreload(() => import('@/components/admin/SystemSettings'))
-const SystemHealthMonitor = lazyWithPreload(() => import('@/components/admin/SystemHealthMonitor'))
+const adminTabs: TabConfig[] = [
+  {
+    id: 'analytics',
+    label: 'Analytics',
+    component: lazyWithPreload(() => import('@/components/admin/Analytics'))
+  },
+  {
+    id: 'users',
+    label: 'Users',
+    component: lazyWithPreload(() => import('@/components/admin/UserManagement'))
+  },
+  {
+    id: 'products',
+    label: 'Products',
+    component: lazyWithPreload(() => import('@/components/admin/ProductManagement'))
+  },
+  {
+    id: 'payments',
+    label: 'Payments',
+    component: lazyWithPreload(() => import('@/components/admin/PaymentVerification'))
+  },
+  {
+    id: 'links',
+    label: 'Links',
+    component: lazyWithPreload(() => import('@/components/admin/LinksManagement'))
+  },
+  {
+    id: 'settings',
+    label: 'Settings',
+    component: lazyWithPreload(() => import('@/components/admin/SystemSettings'))
+  },
+  {
+    id: 'health',
+    label: 'System Health',
+    component: lazyWithPreload(() => import('@/components/admin/SystemHealthMonitor'))
+  }
+];
 
-// Wrap each component with the ErrorBoundary HOC
-const AnalyticsWithBoundary = withErrorBoundary(Analytics)
-const UserManagementWithBoundary = withErrorBoundary(UserManagement)
-const PaymentVerificationWithBoundary = withErrorBoundary(PaymentVerification)
-const ProductManagementWithBoundary = withErrorBoundary(ProductManagement)
-const LinksManagementWithBoundary = withErrorBoundary(LinksManagement)
-const SystemSettingsWithBoundary = withErrorBoundary(SystemSettings)
-const SystemHealthMonitorWithBoundary = withErrorBoundary(SystemHealthMonitor)
+// Create wrapped components with error boundaries
+const wrappedComponents = adminTabs.reduce((acc, tab) => ({
+  ...acc,
+  [tab.id]: withErrorBoundary(tab.component)
+}), {} as Record<string, React.ComponentType>);
 
 const AdminDashboard: React.FC = () => {
   return (
@@ -33,102 +65,31 @@ const AdminDashboard: React.FC = () => {
         
         <Tabs defaultValue="analytics" className="space-y-4">
           <TabsList aria-label="Admin Dashboard Tabs">
-            <TabsTrigger 
-              value="analytics" 
-              onMouseEnter={() => Analytics.preload()}
-            >
-              Analytics
-            </TabsTrigger>
-            <TabsTrigger 
-              value="users" 
-              onMouseEnter={() => UserManagement.preload()}
-            >
-              Users
-            </TabsTrigger>
-            <TabsTrigger 
-              value="products" 
-              onMouseEnter={() => ProductManagement.preload()}
-            >
-              Products
-            </TabsTrigger>
-            <TabsTrigger 
-              value="payments" 
-              onMouseEnter={() => PaymentVerification.preload()}
-            >
-              Payments
-            </TabsTrigger>
-            <TabsTrigger 
-              value="links" 
-              onMouseEnter={() => LinksManagement.preload()}
-            >
-              Links
-            </TabsTrigger>
-            <TabsTrigger 
-              value="settings" 
-              onMouseEnter={() => SystemSettings.preload()}
-            >
-              Settings
-            </TabsTrigger>
-            <TabsTrigger 
-              value="health" 
-              onMouseEnter={() => SystemHealthMonitor.preload()}
-            >
-              System Health
-            </TabsTrigger>
+            {adminTabs.map(({ id, label, component }) => (
+              <TabsTrigger
+                key={id}
+                value={id}
+                onMouseEnter={() => component.preload()}
+              >
+                {label}
+              </TabsTrigger>
+            ))}
           </TabsList>
 
-          {/* Analytics Tab */}
-          <TabsContent value="analytics" className="space-y-4">
-            <Suspense fallback={<LoadingSpinner />}>
-              <AnalyticsWithBoundary />
-            </Suspense>
-          </TabsContent>
-
-          {/* Users Tab */}
-          <TabsContent value="users" className="space-y-4">
-            <Suspense fallback={<LoadingSpinner />}>
-              <UserManagementWithBoundary />
-            </Suspense>
-          </TabsContent>
-
-          {/* Products Tab */}
-          <TabsContent value="products" className="space-y-4">
-            <Suspense fallback={<LoadingSpinner />}>
-              <ProductManagementWithBoundary />
-            </Suspense>
-          </TabsContent>
-
-          {/* Payments Tab */}
-          <TabsContent value="payments" className="space-y-4">
-            <Suspense fallback={<LoadingSpinner />}>
-              <PaymentVerificationWithBoundary />
-            </Suspense>
-          </TabsContent>
-
-          {/* Links Tab */}
-          <TabsContent value="links" className="space-y-4">
-            <Suspense fallback={<LoadingSpinner />}>
-              <LinksManagementWithBoundary />
-            </Suspense>
-          </TabsContent>
-
-          {/* Settings Tab */}
-          <TabsContent value="settings" className="space-y-4">
-            <Suspense fallback={<LoadingSpinner />}>
-              <SystemSettingsWithBoundary />
-            </Suspense>
-          </TabsContent>
-
-          {/* System Health Tab */}
-          <TabsContent value="health" className="space-y-4">
-            <Suspense fallback={<LoadingSpinner />}>
-              <SystemHealthMonitorWithBoundary />
-            </Suspense>
-          </TabsContent>
+          {adminTabs.map(({ id }) => {
+            const WrappedComponent = wrappedComponents[id];
+            return (
+              <TabsContent key={id} value={id} className="space-y-4">
+                <Suspense fallback={<LoadingSpinner />}>
+                  <WrappedComponent />
+                </Suspense>
+              </TabsContent>
+            );
+          })}
         </Tabs>
       </div>
     </ProtectedRoute>
-  )
-}
+  );
+};
 
-export default AdminDashboard
+export default AdminDashboard;
