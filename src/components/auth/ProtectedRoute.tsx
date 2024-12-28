@@ -12,7 +12,7 @@ interface ProtectedRouteProps {
   allowedRoles?: UserRole[]
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles }) => {
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles }) => {
   const { user, userRole, loading } = useAuth()
   const location = useLocation()
 
@@ -55,5 +55,3 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
 
   return <>{children}</>
 }
-
-export default ProtectedRoute

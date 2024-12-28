@@ -10,7 +10,8 @@ import { toast } from '@/hooks/use-toast'
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const { signIn, user } = useAuth()
+  const [isLoading, setIsLoading] = useState(false)
+  const { signIn, user, loading } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const emailInputRef = useRef<HTMLInputElement>(null)
@@ -29,6 +30,11 @@ const LoginForm: React.FC = () => {
       navigate(from, { replace: true })
     }
   }, [user, navigate, from])
+
+  // Synchronize local isLoading with context loading
+  useEffect(() => {
+    setIsLoading(loading)
+  }, [loading])
 
   /**
    * Validates the email format using regex.
@@ -50,7 +56,7 @@ const LoginForm: React.FC = () => {
       e.preventDefault()
 
       // Prevent submission if already loading
-      if (loading) return
+      if (isLoading) return
 
       // Basic email format validation
       if (!isValidEmail(email)) {
@@ -100,17 +106,8 @@ const LoginForm: React.FC = () => {
         setIsLoading(false)
       }
     },
-    [email, password, signIn, loading]
+    [email, password, signIn, isLoading]
   )
-
-  // Local loading state synchronized with context loading
-  const { loading } = useAuth()
-  const [isLoading, setIsLoading] = useState(false)
-
-  // Synchronize local isLoading with context loading
-  useEffect(() => {
-    setIsLoading(loading)
-  }, [loading])
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 animate-fade-up" aria-busy={isLoading}>
