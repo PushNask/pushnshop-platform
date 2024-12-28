@@ -13,7 +13,6 @@ import { useToast } from '@/hooks/use-toast';
 
 import HomePage from '@/pages/HomePage';
 
-// Lazy load other pages with chunk naming
 const SellerDashboard = lazy(() => 
   import('@/pages/SellerDashboard' /* webpackChunkName: "seller-dashboard" */)
 );

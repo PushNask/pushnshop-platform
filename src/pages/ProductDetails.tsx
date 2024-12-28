@@ -108,7 +108,7 @@ const ProductDetailsCard: React.FC<ProductDetailsProps> = ({
   );
 };
 
-export const ProductDetails = withErrorBoundary(() => {
+const ProductDetailsComponent = () => {
   const { id } = useParams();
 
   const { data: product, isLoading } = useQuery({
@@ -148,9 +148,9 @@ export const ProductDetails = withErrorBoundary(() => {
       <ProductDetailsCard product={product} />
     </div>
   );
-});
+};
 
-export const PermanentLinkDetails = withErrorBoundary(() => {
+const PermanentLinkDetailsComponent = () => {
   const { linkNumber } = useParams();
 
   const { data: linkData, isLoading } = useQuery({
@@ -197,4 +197,7 @@ export const PermanentLinkDetails = withErrorBoundary(() => {
       />
     </div>
   );
-});
+};
+
+export const ProductDetails = withErrorBoundary(ProductDetailsComponent);
+export const PermanentLinkDetails = withErrorBoundary(PermanentLinkDetailsComponent);

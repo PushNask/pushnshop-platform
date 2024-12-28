@@ -25,7 +25,7 @@ const isNetworkError = (error: Error): boolean => {
   );
 };
 
-class ErrorBoundary extends React.Component<Props, State> {
+export class ErrorBoundary extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = { hasError: false, error: null };
@@ -104,5 +104,3 @@ export function withErrorBoundary<P extends object>(
     );
   };
 }
-
-export default ErrorBoundary;
