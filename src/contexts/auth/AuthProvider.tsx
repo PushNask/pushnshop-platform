@@ -39,8 +39,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
         error: null
       });
     }
-    // Remove all Supabase subscriptions
-    supabase.removeAllSubscriptions();
   }, [updateState]);
 
   // Enhanced auth handlers with proper cleanup
@@ -53,7 +51,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
   // Enhanced signOut with proper cleanup
   const signOut = useCallback(async () => {
     try {
-      // First cleanup existing state and subscriptions
+      // First cleanup existing state
       cleanup();
       
       // Perform Supabase signout
@@ -168,7 +166,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
     return () => {
       mounted.current = false;
       authInitialized.current = false;
-      subscription.unsubscribe();
+      subscription?.unsubscribe();
       cleanup();
     };
   }, [fetchUserRole, updateState, handleAuthStateChange, onAuthStateChange, cleanup]);
@@ -180,7 +178,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
     loading,
     error,
     signIn,
-    signOut, // Using enhanced signOut
+    signOut,
   };
 
   return (
