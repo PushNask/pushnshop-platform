@@ -201,3 +201,6 @@ const PermanentLinkDetailsComponent = () => {
 
 export const ProductDetails = withErrorBoundary(ProductDetailsComponent);
 export const PermanentLinkDetails = withErrorBoundary(PermanentLinkDetailsComponent);
+
+// Add default export for lazy loading
+export default ProductDetails;
