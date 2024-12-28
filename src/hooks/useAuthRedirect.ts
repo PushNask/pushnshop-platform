@@ -20,20 +20,24 @@ export const useAuthRedirect = ({ user, userRole, loading }: UseAuthRedirectProp
   useEffect(() => {
     const handleRedirect = async () => {
       try {
+        // If we're still loading user data, don't do anything yet.
         if (loading) return
 
         const isAuthRoute = ['/login', '/signup', '/reset-password'].includes(location.pathname)
-        
-        // If on auth route but already authenticated, redirect to appropriate dashboard
+
+        /**
+         * AUTHENTICATED USER ON AUTH ROUTE
+         * e.g., user tries to visit /login but they're already authenticated.
+         */
         if (isAuthRoute && user && userRole) {
           console.log('Authenticated user on auth route, redirecting to dashboard', {
             userId: user.id,
             role: userRole,
             from: location.pathname,
           })
-          
+
+          // Dynamically set a dashboard path based on role
           let dashboardPath = '/'
-          
           switch (userRole) {
             case 'admin':
               dashboardPath = '/admin'
@@ -46,42 +50,44 @@ export const useAuthRedirect = ({ user, userRole, loading }: UseAuthRedirectProp
           }
 
           navigate(dashboardPath, { replace: true })
-          
           toast({
-            title: "Welcome back!",
-            description: `You've been redirected to your ${userRole} dashboard.`
+            title: 'Welcome back!',
+            description: `You've been redirected to your ${userRole} dashboard.`,
           })
           return
         }
 
-        // If not on auth route and not authenticated, redirect to login
+        /**
+         * UNAUTHENTICATED USER ON PROTECTED ROUTE
+         * e.g., user tries to visit /admin but is not authenticated.
+         */
         if (!isAuthRoute && !user) {
           console.log('Unauthenticated user on protected route, redirecting to login', {
             from: location.pathname,
           })
-          
+
           navigate('/login', {
             replace: true,
-            state: { from: location.pathname }
+            state: { from: location.pathname },
           })
-          
+
           toast({
-            variant: "destructive",
-            title: "Authentication Required",
-            description: "Please sign in to continue."
+            variant: 'destructive',
+            title: 'Authentication Required',
+            description: 'Please sign in to continue.',
           })
-          return
         }
       } catch (error) {
         logError(error, 'Auth redirect error', user?.id)
         toast({
-          variant: "destructive",
-          title: "Navigation Error",
-          description: "Failed to redirect. Please try again."
+          variant: 'destructive',
+          title: 'Navigation Error',
+          description: 'Failed to redirect. Please try again.',
         })
       }
     }
 
+    // Invoke the redirect logic whenever relevant dependencies change
     handleRedirect()
   }, [user, userRole, loading, location.pathname, navigate])
 }
