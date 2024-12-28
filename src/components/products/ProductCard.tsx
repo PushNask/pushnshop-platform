@@ -1,11 +1,12 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
 import { supabase } from '@/integrations/supabase/client'
-import { MessageSquare, Pencil, Trash2, Clock } from 'lucide-react'
+import { MessageSquare, Pencil, Trash2, Clock, Loader2 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { useProductTimer } from '@/hooks/useProductTimer'
+import { useState } from 'react'
 
 interface ProductCardProps {
   id: string
@@ -33,9 +34,13 @@ const ProductCard = ({
   const { toast } = useToast()
   const queryClient = useQueryClient()
   const { hours, minutes, seconds, isExpired } = useProductTimer(id)
+  const [isWhatsAppLoading, setIsWhatsAppLoading] = useState(false)
+  const [imageError, setImageError] = useState(false)
 
   const handleWhatsAppClick = async () => {
     try {
+      setIsWhatsAppLoading(true)
+      
       // Update performance score if this is a permanent link
       if (linkId > 0) {
         await supabase.rpc('increment_link_analytics', {
@@ -57,6 +62,8 @@ const ProductCard = ({
         title: 'Error',
         description: 'Could not connect to WhatsApp'
       })
+    } finally {
+      setIsWhatsAppLoading(false)
     }
   }
 
@@ -94,14 +101,19 @@ const ProductCard = ({
       <Link to={`/details/${id}`} className="flex-grow">
         <div className="relative aspect-square overflow-hidden rounded-t-lg">
           <img
-            src={imageUrl || '/placeholder.svg'}
+            src={imageError ? '/placeholder.svg' : (imageUrl || '/placeholder.svg')}
             alt={title}
             className="object-cover w-full h-full"
+            onError={() => setImageError(true)}
           />
           {/* Timer badge */}
           <div className="absolute top-2 right-2 bg-black/70 text-white px-2 py-1 rounded-full flex items-center text-sm">
             <Clock className="w-4 h-4 mr-1" />
-            {hours}h {minutes}m {seconds}s
+            <span className="tabular-nums">
+              {hours.toString().padStart(2, '0')}h{' '}
+              {minutes.toString().padStart(2, '0')}m{' '}
+              {seconds.toString().padStart(2, '0')}s
+            </span>
           </div>
         </div>
         <CardContent className="flex-grow p-4">
@@ -139,10 +151,14 @@ const ProductCard = ({
           <Button
             className="w-full"
             onClick={handleWhatsAppClick}
-            disabled={!whatsappNumber}
+            disabled={!whatsappNumber || isWhatsAppLoading}
           >
-            <MessageSquare className="w-4 h-4 mr-2" />
-            Contact Seller
+            {isWhatsAppLoading ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <MessageSquare className="w-4 h-4 mr-2" />
+            )}
+            {isWhatsAppLoading ? 'Connecting...' : 'Contact Seller'}
           </Button>
         )}
       </CardFooter>
