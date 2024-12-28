@@ -1,16 +1,16 @@
-import type { CurrencyType } from './database/enums'
-
-export interface Product {
-  id: string
-  title: string
-  description: string
-  price: number
-  currency: CurrencyType
-  created_at: string
-  status: string
-  seller_id: string
-  expires_at: string | null
+export type BaseProduct = {
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  currency: string;
+  created_at: string;
   seller?: {
-    full_name: string | null
-  }
-}
+    whatsapp_number: string;
+    full_name: string;
+  };
+  images?: Array<{
+    url: string;
+    alt: string;
+  }>;
+};
