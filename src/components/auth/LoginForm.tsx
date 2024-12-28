@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/contexts/auth/AuthProvider'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -7,53 +7,119 @@ import { Loader2 } from 'lucide-react'
 import { logError } from '@/utils/errorLogger'
 import { toast } from '@/hooks/use-toast'
 
-const LoginForm = () => {
+const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const { signIn } = useAuth()
+  const { signIn, user } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  const emailInputRef = useRef<HTMLInputElement>(null)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (isLoading) return
+  // Extract the redirect path from location state or default to dashboard
+  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/dashboard'
 
-    setIsLoading(true)
-    console.log('Login attempt:', { email })
+  // Auto-focus the email input on component mount
+  useEffect(() => {
+    emailInputRef.current?.focus()
+  }, [])
 
-    try {
-      await signIn(email, password)
-    } catch (err) {
-      logError(err, 'Login error')
-      
-      // Handle email confirmation error specifically
-      if (err instanceof Error && 
-          (err.message?.includes('email_not_confirmed') || 
-           err.message?.includes('Email not confirmed'))) {
+  // Navigate to the intended page upon successful login
+  useEffect(() => {
+    if (user) {
+      navigate(from, { replace: true })
+    }
+  }, [user, navigate, from])
+
+  /**
+   * Validates the email format using regex.
+   * @param email - The email string to validate.
+   * @returns Boolean indicating whether the email is valid.
+   */
+  const isValidEmail = (email: string): boolean => {
+    // Simple email regex for validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return emailRegex.test(email)
+  }
+
+  /**
+   * Handles form submission for user login.
+   * @param e - The form submission event.
+   */
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault()
+
+      // Prevent submission if already loading
+      if (loading) return
+
+      // Basic email format validation
+      if (!isValidEmail(email)) {
         toast({
           variant: 'destructive',
-          title: 'Email Not Confirmed',
-          description: "Please check your email and confirm your account before signing in. Check your spam folder if you can't find the confirmation email.",
+          title: 'Invalid Email',
+          description: 'Please enter a valid email address.',
         })
         return
       }
-      
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: err instanceof Error 
-          ? err.message 
-          : 'Failed to sign in. Please check your credentials.',
-      })
-    } finally {
-      setIsLoading(false)
-    }
-  }
+
+      // Clear any existing errors and show loading state
+      setIsLoading(true)
+      console.log('Login attempt:', { email })
+
+      try {
+        await signIn(email, password)
+        // Upon successful sign-in, navigation is handled by useEffect
+      } catch (err) {
+        logError(err, 'Login error')
+
+        // Handle email confirmation error specifically
+        if (
+          err instanceof Error &&
+          (err.message.toLowerCase().includes('email_not_confirmed') ||
+            err.message.toLowerCase().includes('email not confirmed'))
+        ) {
+          toast({
+            variant: 'destructive',
+            title: 'Email Not Confirmed',
+            description:
+              'Please check your email and confirm your account before signing in. Check your spam folder if you can\'t find the confirmation email.',
+          })
+          return
+        }
+
+        // General error handling
+        toast({
+          variant: 'destructive',
+          title: 'Sign In Failed',
+          description:
+            err instanceof Error
+              ? err.message
+              : 'Failed to sign in. Please check your credentials.',
+        })
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [email, password, signIn, loading]
+  )
+
+  // Local loading state synchronized with context loading
+  const { loading } = useAuth()
+  const [isLoading, setIsLoading] = useState(false)
+
+  // Synchronize local isLoading with context loading
+  useEffect(() => {
+    setIsLoading(loading)
+  }, [loading])
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 animate-fade-up">
+    <form onSubmit={handleSubmit} className="space-y-4 animate-fade-up" aria-busy={isLoading}>
       <div className="space-y-2">
+        <label htmlFor="email" className="sr-only">
+          Email
+        </label>
         <Input
+          id="email"
           type="email"
           placeholder="Email"
           value={email}
@@ -62,10 +128,15 @@ const LoginForm = () => {
           disabled={isLoading}
           className="bg-background"
           autoComplete="email"
+          ref={emailInputRef}
         />
       </div>
       <div className="space-y-2">
+        <label htmlFor="password" className="sr-only">
+          Password
+        </label>
         <Input
+          id="password"
           type="password"
           placeholder="Password"
           value={password}
@@ -78,12 +149,13 @@ const LoginForm = () => {
       </div>
       <Button
         type="submit"
-        className="w-full"
+        className="w-full flex items-center justify-center"
         disabled={isLoading}
+        aria-disabled={isLoading}
       >
         {isLoading ? (
           <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />
             Signing in...
           </>
         ) : (
