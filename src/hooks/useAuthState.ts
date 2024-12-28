@@ -16,15 +16,18 @@ export const useAuthState = () => {
     user: null,
     userRole: null,
     loading: true,
-    error: null
+    error: null,
   })
 
+  /**
+   * Merges the new state into the existing `AuthState`.
+   */
   const updateState = (newState: Partial<AuthState>) => {
-    setState(prev => ({ ...prev, ...newState }))
+    setState((prev) => ({ ...prev, ...newState }))
   }
 
   return {
     ...state,
-    updateState
+    updateState,
   }
 }
