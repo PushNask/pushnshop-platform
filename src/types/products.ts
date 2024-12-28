@@ -14,3 +14,11 @@ export type BaseProduct = {
     alt: string;
   }>;
 };
+
+// Export Product type for broader use
+export type Product = BaseProduct & {
+  status: 'draft' | 'pending' | 'active' | 'expired';
+  seller_id: string;
+  expires_at: string | null;
+  deleted_at: string | null;
+};
