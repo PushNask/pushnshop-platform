@@ -1,57 +1,75 @@
-import React, { useEffect } from 'react'
-import { Navigate, useLocation } from 'react-router-dom'
-import { Loader2 } from 'lucide-react'
-import { useAuth } from '@/contexts/auth/AuthProvider'
-import { toast } from '@/hooks/use-toast'
-import type { Database } from '@/integrations/supabase/types'
+import React, { useEffect, useCallback } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
+import { useAuth } from '@/contexts/auth/AuthProvider';
+import { toast } from '@/hooks/use-toast';
+import type { Database } from '@/integrations/supabase/types';
+import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 
-type UserRole = Database['public']['Enums']['user_role']
+type UserRole = Database['public']['Enums']['user_role'];
 
 interface ProtectedRouteProps {
-  children: React.ReactNode
-  allowedRoles?: UserRole[]
+  children: React.ReactNode;
+  allowedRoles?: UserRole[];
+  redirectTo?: string;
+  loadingComponent?: React.ReactNode;
 }
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles }) => {
-  const { user, userRole, loading } = useAuth()
-  const location = useLocation()
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+  children,
+  allowedRoles,
+  redirectTo = '/login',
+  loadingComponent
+}) => {
+  const { user, userRole, loading } = useAuth();
+  const location = useLocation();
+
+  const handleAccessDenied = useCallback((reason: 'auth' | 'role') => {
+    toast({
+      variant: 'destructive',
+      title: 'Access Denied',
+      description: reason === 'auth'
+        ? 'Please sign in to continue.'
+        : "You don't have permission to access this page."
+    });
+  }, []);
 
   useEffect(() => {
     if (!loading) {
       if (!user) {
-        toast({
-          variant: 'destructive',
-          title: 'Access Denied',
-          description: 'Please sign in to continue.',
-        })
+        handleAccessDenied('auth');
       } else if (allowedRoles && !allowedRoles.includes(userRole as UserRole)) {
-        toast({
-          variant: 'destructive',
-          title: 'Access Denied',
-          description: "You don't have permission to access this page.",
-        })
+        handleAccessDenied('role');
       }
     }
-  }, [loading, user, userRole, allowedRoles])
+  }, [loading, user, userRole, allowedRoles, handleAccessDenied]);
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen" role="status" aria-live="polite">
-        <Loader2 className="h-8 w-8 animate-spin" aria-hidden="true" />
-        <span className="sr-only">Loading...</span>
-      </div>
-    )
+    return loadingComponent || (
+      <LoadingSpinner 
+        size="md"
+        fullScreen={true}
+      />
+    );
   }
 
-  // Redirect to login if not authenticated
   if (!user) {
-    return <Navigate to="/login" state={{ from: location }} replace />
+    // Store the attempted URL for redirect after login
+    return (
+      <Navigate 
+        to={redirectTo} 
+        state={{ from: location }} 
+        replace 
+      />
+    );
   }
 
-  // Redirect to home if user doesn't have required role
   if (allowedRoles && !allowedRoles.includes(userRole as UserRole)) {
-    return <Navigate to="/" replace />
+    return <Navigate to="/" replace />;
   }
 
-  return <>{children}</>
-}
+  // Render children only when authentication and authorization are confirmed
+  return <>{children}</>;
+};
+
+export default ProtectedRoute;
