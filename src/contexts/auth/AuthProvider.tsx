@@ -12,33 +12,85 @@ interface AuthProviderProps {
   onAuthStateChange?: (user: AuthContextType['user']) => void;
 }
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({ 
-  children, 
-  onAuthStateChange 
+export const AuthProvider: React.FC<AuthProviderProps> = ({
+  children,
+  onAuthStateChange
 }) => {
-  const { 
-    user, 
-    session, 
-    userRole, 
-    loading, 
-    error, 
-    updateState 
+  const {
+    user,
+    session,
+    userRole,
+    loading,
+    error,
+    updateState
   } = useAuthState();
 
-  const { 
-    fetchUserRole, 
-    signIn, 
-    signOut 
+  const mounted = useRef(false);
+  const authInitialized = useRef(false);
+
+  // Enhanced cleanup function
+  const cleanup = useCallback(() => {
+    if (mounted.current) {
+      updateState({
+        user: null,
+        session: null,
+        userRole: null,
+        loading: false,
+        error: null
+      });
+    }
+    // Remove all Supabase subscriptions
+    supabase.removeAllSubscriptions();
+  }, [updateState]);
+
+  // Enhanced auth handlers with proper cleanup
+  const {
+    fetchUserRole,
+    signIn,
+    signOut: baseSignOut
   } = useAuthHandlers(updateState);
 
-  const mounted = useRef(false);
+  // Enhanced signOut with proper cleanup
+  const signOut = useCallback(async () => {
+    try {
+      // First cleanup existing state and subscriptions
+      cleanup();
+      
+      // Perform Supabase signout
+      const { error: signOutError } = await supabase.auth.signOut();
+      if (signOutError) throw signOutError;
+
+      // Clear any cached auth data
+      await supabase.auth.clearSession();
+      
+      // Update state after successful signout
+      updateState({
+        user: null,
+        session: null,
+        userRole: null,
+        loading: false
+      });
+
+      onAuthStateChange?.(null);
+    } catch (err) {
+      logError(err, 'SignOut error');
+      updateState({
+        error: err instanceof Error ? err : new Error('SignOut failed')
+      });
+    }
+  }, [cleanup, updateState, onAuthStateChange]);
 
   const handleAuthStateChange = useCallback(async (
-    event: string, 
+    event: string,
     session: AuthContextType['session']
   ) => {
     try {
       console.log('Auth state changed:', { event, userId: session?.user?.id });
+
+      if (event === 'SIGNED_OUT') {
+        cleanup();
+        return;
+      }
 
       if (session?.user) {
         updateState({
@@ -55,27 +107,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
         }
       } else {
         if (mounted.current) {
-          updateState({
-            user: null,
-            session: null,
-            userRole: null,
-            loading: false,
-          });
+          cleanup();
           onAuthStateChange?.(null);
         }
       }
     } catch (err) {
       logError(err, 'Auth state change error');
       if (mounted.current) {
-        updateState({ error: err instanceof Error ? err : new Error('Auth state change failed') });
+        updateState({ 
+          error: err instanceof Error ? err : new Error('Auth state change failed'),
+          loading: false
+        });
       }
     }
-  }, [fetchUserRole, updateState, onAuthStateChange]);
+  }, [fetchUserRole, updateState, onAuthStateChange, cleanup]);
 
   useEffect(() => {
     mounted.current = true;
 
     const initializeAuth = async () => {
+      if (authInitialized.current) return;
+
       try {
         const { data: sessionData } = await supabase.auth.getSession();
         
@@ -96,6 +148,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
           updateState({ loading: false });
           onAuthStateChange?.(null);
         }
+
+        authInitialized.current = true;
       } catch (err) {
         logError(err, 'Auth initialization error');
         if (mounted.current) {
@@ -113,9 +167,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
 
     return () => {
       mounted.current = false;
+      authInitialized.current = false;
       subscription.unsubscribe();
+      cleanup();
     };
-  }, [fetchUserRole, updateState, handleAuthStateChange, onAuthStateChange]);
+  }, [fetchUserRole, updateState, handleAuthStateChange, onAuthStateChange, cleanup]);
 
   const value = {
     user,
@@ -124,7 +180,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
     loading,
     error,
     signIn,
-    signOut,
+    signOut, // Using enhanced signOut
   };
 
   return (
