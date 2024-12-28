@@ -1,139 +1,153 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
-import { useAuth } from '@/contexts/auth/AuthProvider'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Loader2 } from 'lucide-react'
-import { logError } from '@/utils/errorLogger'
-import { toast } from '@/hooks/use-toast'
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '@/contexts/auth/AuthProvider';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Loader2 } from 'lucide-react';
+import { logError } from '@/utils/errorLogger';
+import { toast } from '@/hooks/use-toast';
+import { z } from 'zod';
+
+const loginSchema = z.object({
+  email: z.string().email('Please enter a valid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters')
+});
+
+type LoginFormData = z.infer<typeof loginSchema>;
 
 const LoginForm: React.FC = () => {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const { signIn, user, loading } = useAuth()
-  const navigate = useNavigate()
-  const location = useLocation()
-  const emailInputRef = useRef<HTMLInputElement>(null)
+  const [formData, setFormData] = useState<LoginFormData>({
+    email: '',
+    password: ''
+  });
+  const [formErrors, setFormErrors] = useState<Partial<LoginFormData>>({});
+  const { signIn, user, loading } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const emailInputRef = useRef<HTMLInputElement>(null);
+  const mounted = useRef(false);
 
-  // Extract the redirect path from location state or default to dashboard
-  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/dashboard'
+  const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/dashboard';
 
-  // Auto-focus the email input on component mount
   useEffect(() => {
-    emailInputRef.current?.focus()
-  }, [])
+    mounted.current = true;
+    emailInputRef.current?.focus();
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
 
-  // Navigate to the intended page upon successful login
   useEffect(() => {
-    if (user) {
-      navigate(from, { replace: true })
+    if (user && mounted.current) {
+      navigate(from, { replace: true });
     }
-  }, [user, navigate, from])
+  }, [user, navigate, from]);
 
-  /**
-   * Validates the email format using regex.
-   * @param email - The email string to validate.
-   * @returns Boolean indicating whether the email is valid.
-   */
-  const isValidEmail = (email: string): boolean => {
-    // Simple email regex for validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return emailRegex.test(email)
-  }
+  const validateForm = useCallback((data: LoginFormData): boolean => {
+    try {
+      loginSchema.parse(data);
+      setFormErrors({});
+      return true;
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        const errors = err.errors.reduce((acc, curr) => ({
+          ...acc,
+          [curr.path[0]]: curr.message
+        }), {});
+        setFormErrors(errors);
+      }
+      return false;
+    }
+  }, []);
 
-  /**
-   * Handles form submission for user login.
-   * @param e - The form submission event.
-   */
-  const handleSubmit = useCallback(
-    async (e: React.FormEvent) => {
-      e.preventDefault()
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    // Clear error when user starts typing
+    setFormErrors(prev => ({ ...prev, [name]: '' }));
+  }, []);
 
-      // Prevent submission if already loading
-      if (loading) return
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (loading) return;
 
-      // Basic email format validation
-      if (!isValidEmail(email)) {
+    if (!validateForm(formData)) {
+      return;
+    }
+
+    try {
+      await signIn(formData.email, formData.password);
+    } catch (err) {
+      logError(err, 'Login error');
+
+      if (err instanceof Error && 
+          err.message.toLowerCase().includes('email_not_confirmed')) {
         toast({
           variant: 'destructive',
-          title: 'Invalid Email',
-          description: 'Please enter a valid email address.',
-        })
-        return
+          title: 'Email Not Confirmed',
+          description: 'Please check your email and confirm your account. Check your spam folder if needed.'
+        });
+        return;
       }
 
-      console.log('Login attempt:', { email })
-
-      try {
-        await signIn(email, password)
-        // Upon successful sign-in, navigation is handled by useEffect
-      } catch (err) {
-        logError(err, 'Login error')
-
-        // Handle email confirmation error specifically
-        if (
-          err instanceof Error &&
-          (err.message.toLowerCase().includes('email_not_confirmed') ||
-            err.message.toLowerCase().includes('email not confirmed'))
-        ) {
-          toast({
-            variant: 'destructive',
-            title: 'Email Not Confirmed',
-            description:
-              'Please check your email and confirm your account before signing in. Check your spam folder if you can\'t find the confirmation email.',
-          })
-          return
-        }
-
-        // General error handling
-        toast({
-          variant: 'destructive',
-          title: 'Sign In Failed',
-          description:
-            err instanceof Error
-              ? err.message
-              : 'Failed to sign in. Please check your credentials.',
-        })
-      }
-    },
-    [email, password, signIn, loading]
-  )
+      toast({
+        variant: 'destructive',
+        title: 'Sign In Failed',
+        description: err instanceof Error
+          ? err.message
+          : 'Failed to sign in. Please check your credentials.'
+      });
+    }
+  }, [formData, signIn, loading, validateForm]);
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 animate-fade-up" aria-busy={loading}>
+    <form 
+      onSubmit={handleSubmit} 
+      className="space-y-4 animate-fade-up" 
+      aria-busy={loading}
+      noValidate
+    >
       <div className="space-y-2">
-        <label htmlFor="email" className="sr-only">
-          Email
-        </label>
         <Input
           id="email"
+          name="email"
           type="email"
           placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          value={formData.email}
+          onChange={handleInputChange}
           required
           disabled={loading}
-          className="bg-background"
+          className={`bg-background ${formErrors.email ? 'border-red-500' : ''}`}
           autoComplete="email"
           ref={emailInputRef}
+          aria-invalid={Boolean(formErrors.email)}
+          aria-describedby={formErrors.email ? 'email-error' : undefined}
         />
+        {formErrors.email && (
+          <p id="email-error" className="text-sm text-red-500">{formErrors.email}</p>
+        )}
       </div>
+
       <div className="space-y-2">
-        <label htmlFor="password" className="sr-only">
-          Password
-        </label>
         <Input
           id="password"
+          name="password"
           type="password"
           placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          value={formData.password}
+          onChange={handleInputChange}
           required
           disabled={loading}
-          className="bg-background"
+          className={`bg-background ${formErrors.password ? 'border-red-500' : ''}`}
           autoComplete="current-password"
+          aria-invalid={Boolean(formErrors.password)}
+          aria-describedby={formErrors.password ? 'password-error' : undefined}
         />
+        {formErrors.password && (
+          <p id="password-error" className="text-sm text-red-500">{formErrors.password}</p>
+        )}
       </div>
+
       <Button
         type="submit"
         className="w-full flex items-center justify-center"
@@ -150,7 +164,7 @@ const LoginForm: React.FC = () => {
         )}
       </Button>
     </form>
-  )
-}
+  );
+};
 
-export default LoginForm
+export default LoginForm;
