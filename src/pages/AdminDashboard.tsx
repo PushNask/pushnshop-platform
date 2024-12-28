@@ -1,7 +1,7 @@
 import React, { Suspense } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import ErrorBoundary, { withErrorBoundary } from '@/components/shared/ErrorBoundary';
+import { ErrorBoundary, withErrorBoundary } from '@/components/shared/ErrorBoundary';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import { lazyWithPreload } from '@/utils/lazyWithPreload';
 

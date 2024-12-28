@@ -7,7 +7,7 @@ import SellerMetrics from '@/components/seller/SellerMetrics'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { Loader2 } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import ErrorBoundary from '@/components/shared/ErrorBoundary'
+import { ErrorBoundary } from '@/components/shared/ErrorBoundary'
 
 const SellerDashboard = () => {
   const { toast } = useToast()

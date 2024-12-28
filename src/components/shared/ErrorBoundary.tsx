@@ -8,6 +8,10 @@ interface Props {
   fallback?: React.ReactNode;
   onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
   resetKeys?: any[];
+  FallbackComponent?: React.ComponentType<{
+    error: Error;
+    resetErrorBoundary: () => void;
+  }>;
 }
 
 interface State {
@@ -54,6 +58,11 @@ export class ErrorBoundary extends React.Component<Props, State> {
   };
 
   renderErrorUI(error: Error | null) {
+    if (this.props.FallbackComponent) {
+      const FallbackComponent = this.props.FallbackComponent;
+      return <FallbackComponent error={error!} resetErrorBoundary={this.handleRetry} />;
+    }
+
     const errorMessage = error?.message || 'An unexpected error occurred';
     const isNetwork = error ? isNetworkError(error) : false;
 
@@ -91,12 +100,11 @@ export class ErrorBoundary extends React.Component<Props, State> {
   }
 }
 
-// HOC with improved type safety and props passing
 export function withErrorBoundary<P extends object>(
   WrappedComponent: React.ComponentType<P>,
   errorBoundaryProps?: Omit<Props, 'children'>
 ) {
-  return function WithErrorBoundary(props: P) {
+  return function WithErrorBoundaryWrapper(props: P) {
     return (
       <ErrorBoundary {...errorBoundaryProps}>
         <WrappedComponent {...props} />
@@ -104,3 +112,6 @@ export function withErrorBoundary<P extends object>(
     );
   };
 }
+
+// Default export for backward compatibility
+export default ErrorBoundary;

@@ -100,7 +100,7 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    <ErrorBoundary FallbackComponent={ErrorFallback} onError={handleError}>
+    <ErrorBoundary onError={handleError} FallbackComponent={ErrorFallback}>
       <BrowserRouter>
         <QueryClientProvider client={queryClient}>
           <AuthProvider>

@@ -1,7 +1,7 @@
 import React, { Suspense } from 'react';
 import { TabsContent } from '@/components/ui/tabs';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
-import ErrorBoundary from '@/components/shared/ErrorBoundary';
+import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
 
 interface LazyTabsContentProps {
   value: string;
