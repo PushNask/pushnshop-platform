@@ -15,7 +15,7 @@ import {
 } from 'recharts'
 import type { AdminMetrics } from '@/types/admin'
 
-export const Analytics = () => {
+const Analytics = () => {
   const { data: metrics } = useQuery({
     queryKey: ['adminMetrics'],
     queryFn: async () => {
@@ -143,3 +143,5 @@ export const Analytics = () => {
     </div>
   )
 }
+
+export default Analytics;

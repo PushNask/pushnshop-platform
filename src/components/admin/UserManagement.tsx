@@ -6,7 +6,7 @@ import { AlertTriangle } from 'lucide-react'
 import { UserTable } from './UserTable'
 import { getWhatsAppError } from '@/utils/validation'
 
-export const UserManagement = () => {
+const UserManagement = () => {
   const { toast } = useToast()
 
   const { data: users, refetch, error, isLoading } = useQuery({
@@ -78,3 +78,5 @@ export const UserManagement = () => {
     </div>
   )
 }
+
+export default UserManagement;

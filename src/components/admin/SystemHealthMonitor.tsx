@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2 } from 'lucide-react'
 
-export const SystemHealthMonitor = () => {
+const SystemHealthMonitor = () => {
   const [lastCheck, setLastCheck] = useState<Date>(new Date())
 
   const { data: healthStatus, isLoading, error } = useQuery({
@@ -81,3 +81,5 @@ export const SystemHealthMonitor = () => {
     </div>
   )
 }
+
+export default SystemHealthMonitor;

@@ -1,6 +1,6 @@
 import { SystemSettingsForm } from './SystemSettingsForm'
 
-export const SystemSettings = () => {
+const SystemSettings = () => {
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold">System Settings</h2>
@@ -8,3 +8,5 @@ export const SystemSettings = () => {
     </div>
   )
 }
+
+export default SystemSettings;

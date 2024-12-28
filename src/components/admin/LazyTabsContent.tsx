@@ -21,7 +21,7 @@ const LazyTabsContent: React.FC<LazyTabsContentProps> = ({
   <TabsContent 
     value={value} 
     className={className}
-    forceMount={keepMounted}
+    forceMount={keepMounted || undefined}
   >
     <ErrorBoundary onError={onError}>
       <Suspense fallback={<LoadingSpinner fullScreen={false} size="md" />}>
@@ -31,5 +31,4 @@ const LazyTabsContent: React.FC<LazyTabsContentProps> = ({
   </TabsContent>
 );
 
-// Memoize the component to prevent unnecessary re-renders
 export default React.memo(LazyTabsContent);
